@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Monolithe - Obtenez Votre Devis de Rénovation Gratuit</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/client.css">
+</head>
+<body>
+    <!-- LANDING VIEW (step = -1) -->
+    <div id="landing-view">
+        <header class="header">
+            <div class="container header-inner">
+                <div class="logo">
+                    <img src="/images/logo.png" alt="Monolithe logo" />
+                    <a href="/">Monolithe</a>
+                </div>
+                <nav class="nav">
+                    <a href="/" class="nav-link nav-link-active">Accueil</a>
+                    <a href="/about-us/" class="nav-link">À Propos</a>
+                    <a href="/tips-and-tricks/" class="nav-link">Astuces</a>
+                    <a href="/contact-us/" class="nav-link">Contact</a>
+                    <a href="/pro/" class="version-toggle-consumer">Espace Pro</a>
+                </nav>
+            </div>
+        </header>
+
+        <main class="container container-md section-hero" id="hero">
+            <div class="text-center space-y-8">
+                <h1 class="heading-hero">
+                    Obtenez votre devis<br />de rénovation
+                </h1>
+                <p class="text-large">
+                    Répondez à quelques questions simples et recevez* une estimation détaillée en 2 minutes
+                </p>
+                <button onclick="startQuestionnaire()" class="btn btn-primary btn-lg">
+                    Commencer
+                </button>
+                <p class="text-small mt-2">
+                    *Vos coordonnées seront demandées pour recevoir votre devis estimatif
+                </p>
+                <div class="check-list check-list-inline pt-8">
+                    <div class="flex items-center gap-2">
+                        <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+                        <span>Gratuit</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+                        <span>Sans engagement</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+                        <span>2 minutes</span>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <footer class="footer">
+            <div class="container footer-inner">
+                <div class="footer-bottom">
+                    © 2025 Monolithe. Tous droits réservés. | <a href="/mentions-legales/" style="color: inherit; text-decoration: underline;">Mentions légales</a>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <!-- QUESTIONNAIRE VIEW (step >= 0) -->
+    <div id="questionnaire-view" class="hidden">
+        <header class="header header-sticky">
+            <div class="container container-md">
+                <div class="header-inner">
+                    <div class="flex items-center gap-8">
+                        <div class="logo">
+                            <img src="/images/logo.png" alt="Monolithe logo" />
+                            <a href="/">Monolithe</a>
+                        </div>
+                        <nav class="nav hidden-mobile">
+                            <a href="/about-us/" class="nav-link">À Propos</a>
+                            <a href="/tips-and-tricks/" class="nav-link">Astuces</a>
+                            <a href="/contact-us/" class="nav-link">Contact</a>
+                        </nav>
+                    </div>
+                    <div id="step-counter" class="text-small text-muted"></div>
+                </div>
+                <div class="progress-container">
+                    <div id="progress-bar" class="progress-bar" style="width: 0%"></div>
+                </div>
+            </div>
+        </header>
+
+        <main class="container container-sm section-content">
+            <!-- Question area -->
+            <div id="question-area" class="space-y-12 animate-fade-in"></div>
+
+            <!-- Contact form (after questions) -->
+            <div id="contact-form-area" class="space-y-12 animate-fade-in hidden">
+                <div class="card card-padded">
+                    <h3 class="heading-card mb-6">Vos coordonnées</h3>
+                    <p class="text-body mb-6">Renseignez vos informations pour découvrir votre estimation personnalisée</p>
+                    <form id="contact-form" class="space-y-4">
+                        <div class="grid-2">
+                            <div class="form-group">
+                                <label class="form-label">Nom</label>
+                                <input type="text" id="form-name" required class="form-input" />
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Téléphone</label>
+                                <input type="tel" id="form-phone" required class="form-input" />
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Email</label>
+                            <input type="email" id="form-email" required class="form-input" />
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Message (optionnel)</label>
+                            <textarea id="form-description" rows="3" class="form-input form-textarea" placeholder="Précisions sur votre projet..."></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="form-consent" required class="checkbox-input" />
+                                <span class="checkbox-text">
+                                    J'accepte que mes données personnelles soient traitées par Monolithe dans le cadre de ma demande de devis et j'ai pris connaissance des
+                                    <a href="/mentions-legales/" target="_blank" rel="noopener noreferrer" class="text-link">mentions légales</a>.
+                                </span>
+                            </label>
+                        </div>
+                        <button type="submit" id="submit-btn" class="btn btn-primary btn-full">
+                            Voir mon estimation
+                        </button>
+                    </form>
+                </div>
+                <button onclick="goBack()" class="btn btn-text">
+                    <svg class="icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 17l-5-5m0 0l5-5m-5 5h12" /></svg>
+                    Retour
+                </button>
+            </div>
+
+            <!-- Estimate result (after submission) -->
+            <div id="estimate-area" class="space-y-12 animate-fade-in hidden"></div>
+        </main>
+
+        <footer class="footer">
+            <div class="container footer-inner">
+                <div class="footer-bottom">
+                    © 2025 Monolithe. Tous droits réservés. | <a href="/mentions-legales/" style="color: inherit; text-decoration: underline;">Mentions légales</a>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <script src="/js/client/devis.js"></script>
+</body>
+</html>

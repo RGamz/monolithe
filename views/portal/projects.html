@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ArtisanPortal - Suivi des projets</title>
+  <link rel="stylesheet" href="/css/portal.css">
+</head>
+<body>
+  <div id="app" class="app-layout">
+    <aside id="sidebar" class="sidebar"></aside>
+    <div id="overlay" class="sidebar-overlay"></div>
+    <main class="main-area">
+      <header id="header" class="header"></header>
+      <div class="page-content">
+        <div class="page-content-inner" id="page-content">
+          <div class="loading">Chargement des projets...</div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Project Modal (hidden by default) -->
+  <div id="project-modal-backdrop" class="modal-backdrop hidden" onclick="closeProjectModal(event)">
+    <div class="modal" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <h3 id="project-modal-title">Nouveau projet</h3>
+        <button class="modal-close" onclick="closeProjectModal()">&times;</button>
+      </div>
+      <form id="project-form" class="modal-body">
+        <input type="hidden" id="pform-id">
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Titre du projet *</label>
+            <input type="text" id="pform-title" class="form-input" required placeholder="ex: Rénovation Bureau">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Client *</label>
+            <select id="pform-client" class="form-select" required>
+              <option value="">Sélectionner un client</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Statut</label>
+            <select id="pform-status" class="form-select">
+              <option value="En attente">En attente</option>
+              <option value="En cours">En cours</option>
+              <option value="Terminé">Terminé</option>
+              <option value="Annulé">Annulé</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Date de début</label>
+            <input type="date" id="pform-start-date" class="form-input">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Description</label>
+          <textarea id="pform-description" class="form-input" rows="3" placeholder="Description du projet..."></textarea>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Artisans assignés</label>
+          <div id="pform-artisans" class="checkbox-group"></div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" style="display: flex; align-items: center; gap: 8px;">
+            <input type="checkbox" id="pform-signed">
+            Procès-verbal de fin de travaux signé
+          </label>
+        </div>
+
+        <div id="pform-error" class="alert alert-error hidden"></div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="closeProjectModal()">Annuler</button>
+          <button type="submit" id="pform-submit-btn" class="btn btn-primary" style="width: auto;">Créer</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="/js/portal/layout.js"></script>
+  <script src="/js/portal/projects.js"></script>
+</body>
+</html>

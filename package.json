@@ -1,0 +1,18 @@
+{
+  "name": "monolithe",
+  "version": "2.0.0",
+  "description": "Monolithe - Site client + Espace Pro + Portail Artisan",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js",
+    "init-db": "node db/init.js"
+  },
+  "dependencies": {
+    "express": "^4.21.0",
+    "sql.js": "^1.11.0",
+    "dotenv": "^16.4.5",
+    "cors": "^2.8.5",
+    "multer": "^1.4.5-lts.1"
+  }
+}

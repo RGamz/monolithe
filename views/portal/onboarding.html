@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ArtisanPortal - Compléter le profil</title>
+  <link rel="stylesheet" href="/css/portal.css">
+</head>
+<body>
+  <div class="wizard-wrapper">
+    <div class="wizard-card">
+      <div class="wizard-header">
+        <h2>Bienvenue sur ArtisanPortal</h2>
+        <p>Veuillez compléter votre profil pour continuer.</p>
+      </div>
+
+      <form id="onboarding-form" class="wizard-body">
+        <div class="form-group">
+          <label class="form-label">Entreprise / Nom d'affichage</label>
+          <input type="text" id="ob-company" class="form-input" placeholder="ex: Acme Construction" required>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Adresse complète</label>
+          <input type="text" id="ob-address" class="form-input" placeholder="ex: 123 Rue des Artisans, Paris" required>
+        </div>
+
+        <div class="form-group" style="max-width: 50%;">
+          <label class="form-label">Spécialité / Métier</label>
+          <select id="ob-specialty" class="form-select">
+            <option value="">Sélectionner une spécialité</option>
+            <option value="General">Entrepreneur général</option>
+            <option value="Plumbing">Plomberie</option>
+            <option value="Electrical">Électricité</option>
+            <option value="HVAC">CVC</option>
+            <option value="Carpentry">Menuiserie</option>
+          </select>
+        </div>
+
+        <div id="ob-error" class="alert alert-error hidden"></div>
+
+        <div class="wizard-footer">
+          <button type="submit" id="ob-btn" class="btn btn-primary" style="width: auto;">
+            Terminer le profil
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="/js/portal/onboarding.js"></script>
+</body>
+</html>

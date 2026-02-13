@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ArtisanPortal - Gestion des utilisateurs</title>
+  <link rel="stylesheet" href="/css/portal.css">
+</head>
+<body>
+  <div id="app" class="app-layout">
+    <aside id="sidebar" class="sidebar"></aside>
+    <div id="overlay" class="sidebar-overlay"></div>
+    <main class="main-area">
+      <header id="header" class="header"></header>
+      <div class="page-content">
+        <div class="page-content-inner" id="page-content">
+          <div class="loading">Chargement...</div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Modal backdrop + form (hidden by default) -->
+  <div id="modal-backdrop" class="modal-backdrop hidden" onclick="closeModal(event)">
+    <div class="modal" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <h3 id="modal-title">Nouvel utilisateur</h3>
+        <button class="modal-close" onclick="closeModal()">&times;</button>
+      </div>
+      <form id="user-form" class="modal-body">
+        <input type="hidden" id="form-id">
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Nom complet *</label>
+            <input type="text" id="form-name" class="form-input" required placeholder="ex: Jean Dupont">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Adresse e-mail *</label>
+            <input type="email" id="form-email" class="form-input" required placeholder="ex: jean@example.com">
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Mot de passe *</label>
+            <input type="text" id="form-password" class="form-input" required placeholder="Minimum 6 caractères">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Rôle *</label>
+            <select id="form-role" class="form-select" required onchange="toggleArtisanFields()">
+              <option value="">Sélectionner un rôle</option>
+              <option value="ADMIN">Administrateur</option>
+              <option value="ARTISAN">Artisan</option>
+              <option value="CLIENT">Client</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Entreprise</label>
+            <input type="text" id="form-company" class="form-input" placeholder="ex: Acme Construction">
+          </div>
+          <div class="form-group" id="specialty-group">
+            <label class="form-label">Spécialité</label>
+            <select id="form-specialty" class="form-select">
+              <option value="">Aucune</option>
+              <option value="Plomberie">Plomberie</option>
+              <option value="Électricité">Électricité</option>
+              <option value="Menuiserie">Menuiserie</option>
+              <option value="Peinture">Peinture</option>
+              <option value="CVC">CVC</option>
+              <option value="General">Entrepreneur général</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Adresse</label>
+          <input type="text" id="form-address" class="form-input" placeholder="ex: 12 Rue de Metz, 31000 Toulouse">
+        </div>
+
+        <div class="form-row" id="coords-group">
+          <div class="form-group">
+            <label class="form-label">Latitude</label>
+            <input type="number" id="form-lat" class="form-input" step="any" placeholder="ex: 43.6047">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Longitude</label>
+            <input type="number" id="form-lng" class="form-input" step="any" placeholder="ex: 1.4442">
+          </div>
+        </div>
+
+        <div id="form-artisan-extra">
+          <div class="form-group">
+            <label class="form-label">Statut documents</label>
+            <select id="form-docs-status" class="form-select">
+              <option value="">Non défini</option>
+              <option value="compliant">Conforme</option>
+              <option value="missing">Manquant</option>
+              <option value="expired">Expiré</option>
+            </select>
+          </div>
+        </div>
+
+        <div id="form-error" class="alert alert-error hidden"></div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="closeModal()">Annuler</button>
+          <button type="submit" id="form-submit-btn" class="btn btn-primary" style="width: auto;">Créer</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="/js/portal/layout.js"></script>
+  <script src="/js/portal/admin.js"></script>
+</body>
+</html>

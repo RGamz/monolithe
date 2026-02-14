@@ -88,7 +88,6 @@ routeWithSlash('/pro/contact-us', 'pro-landing', 'contact-us.html');
 app.get('/', servePage('client', 'index.html'));
 routeWithSlash('/about-us', 'client', 'about-us.html');
 routeWithSlash('/contact-us', 'client', 'contact-us.html');
-routeWithSlash('/tips-and-tricks', 'client', 'tips-and-tricks.html');
 routeWithSlash('/mentions-legales', 'client', 'mentions-legales.html');
 
 // ------------------------------------------------------------------

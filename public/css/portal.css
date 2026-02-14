@@ -1612,3 +1612,29 @@ img { max-width: 100%; display: block; }
 .tab-content {
   min-height: 400px;
 }
+
+/* Tab extras (Client Submissions) */
+
+.tab-btn.tab-active {
+  color: var(--blue-600);
+  border-bottom-color: var(--blue-600);
+}
+
+.tab-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 6px;
+  border-radius: 11px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  background: var(--slate-100);
+  color: var(--slate-600);
+}
+
+.tab-active .tab-count {
+  background: var(--blue-100);
+  color: var(--blue-700);
+}

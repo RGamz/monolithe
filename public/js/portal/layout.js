@@ -70,6 +70,8 @@ const ICONS = {
   close: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>',
   
   bell: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>',
+
+  inbox: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 16 12 14 15 10 15 8 12 2 12"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg>',
 };
 
 // ---------------------------------------------------------------
@@ -82,6 +84,7 @@ const PAGE_TITLES = {
   'directory': 'Annuaire des artisans',
   'projects': 'Suivi des projets',
   'admin': 'Gestion des utilisateurs',
+  'client-submissions': 'Demandes clients',
   'artisan-profile': 'Profil Artisan',
 };
 
@@ -111,6 +114,7 @@ function buildSidebar(user, currentPage) {
   }
   
   if (user.role === 'ADMIN') {
+    navItems += navItem('client-submissions', ICONS.inbox, 'Demandes clients', currentPage);
     navItems += navItem('directory', ICONS.users, 'Annuaire des artisans', currentPage);
     navItems += navItem('projects', ICONS.folder, 'Suivi des projets', currentPage);
     navItems += navItem('admin', ICONS.userCog, 'Gestion utilisateurs', currentPage);

@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ArtisanPortal - Demandes clients</title>
+  <link rel="stylesheet" href="/css/portal.css">
+</head>
+<body>
+  <div id="app" class="app-layout">
+    <aside id="sidebar" class="sidebar"></aside>
+    <div id="overlay" class="sidebar-overlay"></div>
+    <main class="main-area">
+      <header id="header" class="header"></header>
+      <div class="page-content">
+        <div class="page-content-inner" id="page-content">
+          <div class="loading">Chargement...</div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Detail modal -->
+  <div id="detail-backdrop" class="modal-backdrop hidden" onclick="closeDetail(event)">
+    <div class="modal" onclick="event.stopPropagation()" style="max-width: 600px;">
+      <div class="modal-header">
+        <h3 id="detail-title">Détail de la demande</h3>
+        <button class="modal-close" onclick="closeDetail()">&times;</button>
+      </div>
+      <div id="detail-body" class="modal-body"></div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeDetail()">Fermer</button>
+        <button id="detail-delete-btn" class="btn" style="width:auto;background:var(--red-600);color:white;" onclick="deleteFromDetail()">Supprimer</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="/js/portal/layout.js"></script>
+  <script src="/js/portal/client-submissions.js"></script>
+</body>
+</html>

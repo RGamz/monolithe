@@ -8,24 +8,12 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/css/client.css">
+    <link rel="stylesheet" href="/css/nav-shared.css">
 </head>
-<body>
+<body data-section="client" data-page="/">
     <!-- LANDING VIEW (step = -1) -->
     <div id="landing-view">
-        <header class="header">
-            <div class="container header-inner">
-                <div class="logo">
-                    <img src="/images/logo.png" alt="Monolithe logo" />
-                    <a href="/">Monolithe</a>
-                </div>
-                <nav class="nav">
-                    <a href="/" class="nav-link nav-link-active">Accueil</a>
-                    <a href="/about-us/" class="nav-link">À Propos</a>
-                    <a href="/contact-us/" class="nav-link">Contact</a>
-                    <a href="/pro/" class="version-toggle-consumer">Espace Pro</a>
-                </nav>
-            </div>
-        </header>
+        <div id="site-header"></div>
 
         <main class="container container-md section-hero" id="hero">
             <div class="text-center space-y-8">
@@ -58,13 +46,7 @@
             </div>
         </main>
 
-        <footer class="footer">
-            <div class="container footer-inner">
-                <div class="footer-bottom">
-                    © 2025 Monolithe. Tous droits réservés. | <a href="/mentions-legales/" style="color: inherit; text-decoration: underline;">Mentions légales</a>
-                </div>
-            </div>
-        </footer>
+        <div id="site-footer-landing"></div>
     </div>
 
     <!-- QUESTIONNAIRE VIEW (step >= 0) -->
@@ -142,15 +124,10 @@
             <div id="estimate-area" class="space-y-12 animate-fade-in hidden"></div>
         </main>
 
-        <footer class="footer">
-            <div class="container footer-inner">
-                <div class="footer-bottom">
-                    © 2025 Monolithe. Tous droits réservés. | <a href="/mentions-legales/" style="color: inherit; text-decoration: underline;">Mentions légales</a>
-                </div>
-            </div>
-        </footer>
+        <div id="site-footer-quiz"></div>
     </div>
 
+    <script src="/js/shared/nav.js"></script>
     <script src="/js/client/devis.js"></script>
 </body>
 </html>

@@ -87,18 +87,12 @@
   </div>
 
   <!-- Lightbox -->
-  <div id="lightbox-backdrop" class="hidden" onclick="closeLightbox(event)"
-       style="position: fixed; inset: 0; background: rgba(0,0,0,0.88); z-index: 1000; display: flex; align-items: center; justify-content: center;">
-    <button id="lightbox-close" onclick="closeLightbox({target: document.getElementById('lightbox-backdrop')})"
-            style="position: absolute; top: 16px; right: 20px; background: none; border: none; color: white; font-size: 2rem; cursor: pointer; line-height: 1;">&times;</button>
-    <button id="lightbox-prev" onclick="lightboxNav(-1)"
-            style="position: absolute; left: 16px; background: rgba(255,255,255,0.15); border: none; color: white; font-size: 2rem; cursor: pointer; border-radius: 50%; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center;">&#8249;</button>
-    <img id="lightbox-img" src="" alt=""
-         style="max-width: 90vw; max-height: 85vh; object-fit: contain; border-radius: 4px; display: block;">
-    <button id="lightbox-next" onclick="lightboxNav(1)"
-            style="position: absolute; right: 16px; background: rgba(255,255,255,0.15); border: none; color: white; font-size: 2rem; cursor: pointer; border-radius: 50%; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center;">&#8250;</button>
-    <span id="lightbox-counter"
-          style="position: absolute; bottom: 16px; left: 50%; transform: translateX(-50%); color: rgba(255,255,255,0.7); font-size: 0.85rem;"></span>
+  <div id="lightbox-backdrop" class="lightbox hidden" onclick="closeLightbox(event)">
+    <button id="lightbox-close" class="lightbox-close" onclick="closeLightbox({target: document.getElementById('lightbox-backdrop')})">&times;</button>
+    <button id="lightbox-prev" class="lightbox-nav lightbox-prev" onclick="lightboxNav(-1)">&#8249;</button>
+    <img id="lightbox-img" class="lightbox-img" src="" alt="">
+    <button id="lightbox-next" class="lightbox-nav lightbox-next" onclick="lightboxNav(1)">&#8250;</button>
+    <span id="lightbox-counter" class="lightbox-counter"></span>
   </div>
 
   <script src="/js/portal/layout.js"></script>

@@ -105,6 +105,7 @@ function buildSidebar(user, currentPage) {
   
   // Role-specific items
   if (user.role === 'ARTISAN') {
+    navItems += navItem('projects', ICONS.folder, 'Suivi des projets', currentPage);
     navItems += navItem('invoices', ICONS.fileText, 'Factures', currentPage);
     navItems += navItem('documents', ICONS.folder, 'Documents', currentPage);
   }

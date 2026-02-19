@@ -120,6 +120,19 @@ async function initialize() {
     )
   `);
 
+  db.run(`
+    CREATE TABLE IF NOT EXISTS project_photos (
+      id TEXT PRIMARY KEY,
+      project_id TEXT NOT NULL,
+      uploaded_by TEXT NOT NULL,
+      photo_type TEXT NOT NULL CHECK(photo_type IN ('before', 'after')),
+      file_name TEXT NOT NULL,
+      uploaded_at TEXT NOT NULL DEFAULT (datetime('now')),
+      FOREIGN KEY (project_id) REFERENCES projects(id),
+      FOREIGN KEY (uploaded_by) REFERENCES users(id)
+    )
+  `);
+
   // --- Client form submissions (replaces Netlify Forms) ---
   db.run(`
     CREATE TABLE IF NOT EXISTS contact_submissions (

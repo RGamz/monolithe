@@ -46,6 +46,10 @@ app.use('/api/users', require('./routes/users'));
 app.use('/api/alerts', require('./routes/alerts'));
 app.use('/api/documents', require('./routes/documents'));
 app.use('/api/forms', require('./routes/client-forms'));
+app.use('/api/photos', require('./routes/photos'));
+
+// Serve uploaded photos
+app.use('/uploads/photos', express.static(path.join(__dirname, 'uploads', 'photos')));
 
 // ------------------------------------------------------------------
 // Helper: serve HTML with trailing slash support

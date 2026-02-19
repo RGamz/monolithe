@@ -7,6 +7,9 @@
  */
 
 const PROJ_ICONS = {
+  image: '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>',
+  upload: '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></svg>',
+  xCircle: '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="m15 9-6 6"/><path d="m9 9 6 6"/></svg>',
   folder: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"/></svg>',
   chevronDown: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>',
   chevronUp: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m18 15-6-6-6 6"/></svg>',
@@ -20,6 +23,11 @@ let allProjects = [];
 let allClients = [];
 let allArtisans = [];
 let editingProjectId = null;
+
+// Photos state
+let photosCache = {}; // projectId -> { before: [], after: [] }
+let lightboxPhotos = [];
+let lightboxIndex = 0;
 
 const user = initLayout('projects');
 if (user) loadProjects(user);
@@ -109,6 +117,7 @@ function buildProjectsHTML(projects, isAdmin) {
 }
 
 function accordionItem(project, index, isAdmin) {
+  const canUpload = isAdmin || (user.role === 'ARTISAN' && (project.artisan_ids || []).includes(user.id));
   let dotClass = 'pending';
   if (project.status === 'En cours') dotClass = 'progress';
   else if (project.status === 'Terminé') dotClass = 'complete';
@@ -180,6 +189,45 @@ function accordionItem(project, index, isAdmin) {
             </div>
           </div>
         </div>
+
+        <!-- Photo Gallery Section -->
+        <div class="photo-gallery-section" id="gallery-${project.id}">
+          <p class="detail-label" style="display: flex; align-items: center; gap: 6px; margin-bottom: 12px;">
+            ${PROJ_ICONS.image} Photos du projet
+          </p>
+
+          <!-- Tabs -->
+          <div class="photo-tabs" id="tabs-${project.id}">
+            <button class="photo-tab active" onclick="switchPhotoTab('${project.id}', 'before')">Avant</button>
+            <button class="photo-tab" onclick="switchPhotoTab('${project.id}', 'after')">Après</button>
+          </div>
+
+          <!-- Before section -->
+          <div id="photo-section-before-${project.id}">
+            <div id="photo-grid-before-${project.id}" class="photo-grid"></div>
+            ${canUpload ? `
+              <div style="margin-top: 8px;">
+                <button class="btn btn-secondary" style="width: auto; font-size: 0.8rem; padding: 6px 12px;"
+                        onclick="triggerPhotoUpload('${project.id}', 'before')">
+                  ${PROJ_ICONS.upload} Ajouter des photos (avant)
+                </button>
+                <div id="upload-error-before-${project.id}" class="alert alert-error hidden" style="margin-top: 8px;"></div>
+              </div>` : ''}
+          </div>
+
+          <!-- After section -->
+          <div id="photo-section-after-${project.id}" class="hidden">
+            <div id="photo-grid-after-${project.id}" class="photo-grid"></div>
+            ${canUpload ? `
+              <div style="margin-top: 8px;">
+                <button class="btn btn-secondary" style="width: auto; font-size: 0.8rem; padding: 6px 12px;"
+                        onclick="triggerPhotoUpload('${project.id}', 'after')">
+                  ${PROJ_ICONS.upload} Ajouter des photos (après)
+                </button>
+                <div id="upload-error-after-${project.id}" class="alert alert-error hidden" style="margin-top: 8px;"></div>
+              </div>` : ''}
+          </div>
+        </div>
       </div>
     </div>
   `;
@@ -188,10 +236,18 @@ function accordionItem(project, index, isAdmin) {
 function toggleAccordion(index) {
   const body = document.getElementById(`body-${index}`);
   const chevron = document.getElementById(`chevron-${index}`);
+  const project = [...allProjects].sort((a, b) => {
+    const statusOrder = { 'En attente': 1, 'En cours': 2, 'Terminé': 3, 'Annulé': 4 };
+    return (statusOrder[a.status] || 99) - (statusOrder[b.status] || 99);
+  })[index];
 
   if (body.classList.contains('hidden')) {
     body.classList.remove('hidden');
     chevron.innerHTML = PROJ_ICONS.chevronUp;
+    // Load photos the first time
+    if (project && !photosCache[project.id]) {
+      loadProjectPhotos(project.id);
+    }
   } else {
     body.classList.add('hidden');
     chevron.innerHTML = PROJ_ICONS.chevronDown;
@@ -364,3 +420,193 @@ async function confirmDeleteProject(projectId, projectTitle) {
     alert('Erreur réseau lors de la suppression.');
   }
 }
+
+// ---------------------------------------------------------------
+// PHOTOS
+// ---------------------------------------------------------------
+
+async function loadProjectPhotos(projectId) {
+  try {
+    const res = await fetch(`/api/photos/${projectId}`);
+    const photos = await res.json();
+
+    photosCache[projectId] = {
+      before: photos.filter(p => p.photo_type === 'before'),
+      after: photos.filter(p => p.photo_type === 'after'),
+    };
+
+    renderPhotoGrid(projectId, 'before');
+    renderPhotoGrid(projectId, 'after');
+  } catch (err) {
+    console.error('Failed to load photos:', err);
+  }
+}
+
+function renderPhotoGrid(projectId, type) {
+  const grid = document.getElementById(`photo-grid-${type}-${projectId}`);
+  if (!grid) return;
+
+  const photos = (photosCache[projectId] || {})[type] || [];
+
+  if (photos.length === 0) {
+    grid.innerHTML = `<p style="color: var(--slate-400); font-style: italic; font-size: 0.8rem; padding: 8px 0;">
+      Aucune photo "${type === 'before' ? 'avant' : 'après'}" pour ce projet.
+    </p>`;
+    return;
+  }
+
+  grid.innerHTML = photos.map((photo, i) => {
+    const canDelete = canDeletePhoto(photo);
+    const allOfType = (photosCache[projectId] || {})[type] || [];
+    return `
+      <div class="photo-thumb" onclick="openLightbox('${projectId}', '${type}', ${i})">
+        <img src="/uploads/photos/${photo.file_name}" alt="Photo ${type}" loading="lazy">
+        ${canDelete ? `
+          <button class="photo-delete-btn" title="Supprimer" 
+                  onclick="event.stopPropagation(); deletePhoto('${photo.id}', '${projectId}', '${type}')">
+            ${PROJ_ICONS.xCircle}
+          </button>` : ''}
+      </div>
+    `;
+  }).join('');
+}
+
+function canDeletePhoto(photo) {
+  if (user.role === 'ADMIN') return true;
+  if (user.role === 'ARTISAN' && photo.uploaded_by === user.id) {
+    const uploadedAt = new Date(photo.uploaded_at);
+    const diffHours = (Date.now() - uploadedAt) / (1000 * 60 * 60);
+    return diffHours <= 24;
+  }
+  return false;
+}
+
+async function deletePhoto(photoId, projectId, type) {
+  if (!confirm('Supprimer cette photo ?')) return;
+
+  try {
+    const res = await fetch(`/api/photos/${photoId}`, {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId: user.id, role: user.role }),
+    });
+
+    if (!res.ok) {
+      const err = await res.json();
+      alert('Erreur : ' + err.error);
+      return;
+    }
+
+    // Update cache
+    photosCache[projectId][type] = photosCache[projectId][type].filter(p => p.id !== photoId);
+    renderPhotoGrid(projectId, type);
+  } catch (err) {
+    alert('Erreur réseau.');
+  }
+}
+
+function switchPhotoTab(projectId, type) {
+  const tabs = document.querySelectorAll(`#tabs-${projectId} .photo-tab`);
+  tabs.forEach((tab, i) => {
+    tab.classList.toggle('active', (i === 0 && type === 'before') || (i === 1 && type === 'after'));
+  });
+
+  document.getElementById(`photo-section-before-${projectId}`).classList.toggle('hidden', type !== 'before');
+  document.getElementById(`photo-section-after-${projectId}`).classList.toggle('hidden', type !== 'after');
+}
+
+// ---------------------------------------------------------------
+// INLINE PHOTO UPLOAD
+// ---------------------------------------------------------------
+
+function triggerPhotoUpload(projectId, photoType) {
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = '.jpg,.jpeg,.png';
+  input.multiple = true;
+  input.addEventListener('change', () => handlePhotoUpload(projectId, photoType, input.files));
+  input.click();
+}
+
+async function handlePhotoUpload(projectId, photoType, files) {
+  if (!files || files.length === 0) return;
+
+  const errorEl = document.getElementById(`upload-error-${photoType}-${projectId}`);
+  if (errorEl) errorEl.classList.add('hidden');
+
+  const formData = new FormData();
+  for (const file of files) {
+    formData.append('photos', file);
+  }
+  formData.append('userId', user.id);
+  formData.append('role', user.role);
+  formData.append('photoType', photoType);
+
+  try {
+    const res = await fetch(`/api/photos/${projectId}`, {
+      method: 'POST',
+      body: formData,
+    });
+
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.error);
+    }
+
+    const newPhotos = await res.json();
+
+    if (!photosCache[projectId]) photosCache[projectId] = { before: [], after: [] };
+    photosCache[projectId][photoType].push(...newPhotos);
+
+    renderPhotoGrid(projectId, photoType);
+  } catch (err) {
+    if (errorEl) {
+      errorEl.textContent = err.message;
+      errorEl.classList.remove('hidden');
+    } else {
+      alert('Erreur : ' + err.message);
+    }
+  }
+}
+
+// ---------------------------------------------------------------
+// LIGHTBOX
+// ---------------------------------------------------------------
+
+function openLightbox(projectId, type, index) {
+  lightboxPhotos = (photosCache[projectId] || {})[type] || [];
+  lightboxIndex = index;
+  renderLightbox();
+  document.getElementById('lightbox-backdrop').classList.remove('hidden');
+}
+
+function closeLightbox(event) {
+  if (event && event.target !== document.getElementById('lightbox-backdrop') &&
+      !event.target.closest('#lightbox-close')) return;
+  document.getElementById('lightbox-backdrop').classList.add('hidden');
+}
+
+function renderLightbox() {
+  const photo = lightboxPhotos[lightboxIndex];
+  if (!photo) return;
+  document.getElementById('lightbox-img').src = `/uploads/photos/${photo.file_name}`;
+  document.getElementById('lightbox-counter').textContent = `${lightboxIndex + 1} / ${lightboxPhotos.length}`;
+  document.getElementById('lightbox-prev').style.visibility = lightboxIndex > 0 ? 'visible' : 'hidden';
+  document.getElementById('lightbox-next').style.visibility = lightboxIndex < lightboxPhotos.length - 1 ? 'visible' : 'hidden';
+}
+
+function lightboxNav(direction) {
+  lightboxIndex += direction;
+  if (lightboxIndex < 0) lightboxIndex = 0;
+  if (lightboxIndex >= lightboxPhotos.length) lightboxIndex = lightboxPhotos.length - 1;
+  renderLightbox();
+}
+
+document.addEventListener('keydown', function(e) {
+  const lb = document.getElementById('lightbox-backdrop');
+  if (lb && !lb.classList.contains('hidden')) {
+    if (e.key === 'ArrowLeft') lightboxNav(-1);
+    if (e.key === 'ArrowRight') lightboxNav(1);
+    if (e.key === 'Escape') lb.classList.add('hidden');
+  }
+});

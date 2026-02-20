@@ -49,4 +49,30 @@ router.post('/', (req, res) => {
   res.json(created);
 });
 
+// DELETE /api/invoices/:id
+router.delete('/:id', (req, res) => {
+  const { id } = req.params;
+  const { artisanId } = req.body;
+
+  if (!artisanId) {
+    return res.status(400).json({ error: 'artisanId requis.' });
+  }
+
+  const invoice = req.db.getOne('SELECT * FROM invoices WHERE id = ?', [id]);
+  if (!invoice) return res.status(404).json({ error: 'Facture introuvable.' });
+
+  if (invoice.artisan_id !== artisanId) {
+    return res.status(403).json({ error: 'Permission refusée.' });
+  }
+
+  if (invoice.status !== 'En attente') {
+    return res.status(403).json({ error: 'Seules les factures "En attente" peuvent être supprimées.' });
+  }
+
+  req.db.run('DELETE FROM invoices WHERE id = ?', [id]);
+  req.db.save();
+
+  res.json({ success: true });
+});
+
 module.exports = router;

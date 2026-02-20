@@ -1892,3 +1892,57 @@ img { max-width: 100%; display: block; }
     bottom: 10px;
   }
 }
+
+/* ---------------------------------------------------------------
+   Invoice table — file cell & actions
+   --------------------------------------------------------------- */
+
+.invoice-file-cell {
+  width: 130px;
+  max-width: 130px;
+  white-space: nowrap;
+}
+
+.invoice-filename {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--blue-600);
+  cursor: pointer;
+  font-size: 0.8125rem;
+  max-width: 120px;
+  overflow: hidden;
+}
+
+.invoice-filename span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.invoice-filename:hover {
+  text-decoration: underline;
+}
+
+.invoice-actions-cell {
+  width: 48px;
+  text-align: center;
+}
+
+.invoice-delete-btn {
+  background: none;
+  border: none;
+  color: var(--slate-400);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: var(--radius-md);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.15s, background 0.15s;
+}
+
+.invoice-delete-btn:hover {
+  color: rgb(220, 38, 38);
+  background: rgb(254, 242, 242);
+}

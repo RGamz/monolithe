@@ -2,7 +2,8 @@
  * Client Forms Routes (routes/client-forms.js)
  * ----------------------------------------------
  * Replaces Netlify Forms — saves submissions to SQLite.
- * 
+ * Sends email notifications via OVH SMTP (Nodemailer).
+ *
  * POST /api/forms/contact     - Contact form (client or pro)
  * POST /api/forms/devis       - Devis questionnaire submission
  * GET  /api/forms/submissions  - Admin: list all submissions
@@ -10,13 +11,100 @@
 
 const express = require('express');
 const router = express.Router();
+const nodemailer = require('nodemailer');
+
+// ---------------------------------------------------------------
+// Mailer setup (OVH SMTP)
+// ---------------------------------------------------------------
+const transporter = nodemailer.createTransport({
+  host: process.env.SMTP_HOST,
+  port: parseInt(process.env.SMTP_PORT) || 465,
+  secure: true, // SSL on port 465
+  auth: {
+    user: process.env.SMTP_USER,
+    pass: process.env.SMTP_PASS,
+  },
+});
+
+/**
+ * Send notification to contact@monolithe.pro + confirmation to submitter.
+ * Fires async — form response is not blocked by email sending.
+ */
+async function sendContactEmails({ name, email, phone, subject, company, requestType, message, source }) {
+  const sourceLabel = source === 'pro' ? 'Espace Pro' : 'Site client';
+
+  // 1. Notification to contact@monolithe.pro
+  await transporter.sendMail({
+    from: `"Monolithe" <${process.env.SMTP_USER}>`,
+    to: process.env.NOTIFY_EMAIL,
+    subject: `[Nouveau contact] ${subject || 'Sans objet'} — ${sourceLabel}`,
+    html: `
+      <h2>Nouveau message de contact</h2>
+      <table style="border-collapse:collapse;font-family:sans-serif;font-size:14px;">
+        <tr><td style="padding:6px 12px;font-weight:600;">Source</td><td style="padding:6px 12px;">${sourceLabel}</td></tr>
+        <tr><td style="padding:6px 12px;font-weight:600;">Nom</td><td style="padding:6px 12px;">${name}</td></tr>
+        <tr><td style="padding:6px 12px;font-weight:600;">Email</td><td style="padding:6px 12px;">${email}</td></tr>
+        <tr><td style="padding:6px 12px;font-weight:600;">Téléphone</td><td style="padding:6px 12px;">${phone || 'Non renseigné'}</td></tr>
+        <tr><td style="padding:6px 12px;font-weight:600;">Société</td><td style="padding:6px 12px;">${company || 'Non renseignée'}</td></tr>
+        <tr><td style="padding:6px 12px;font-weight:600;">Sujet</td><td style="padding:6px 12px;">${subject || 'Non renseigné'}</td></tr>
+        <tr><td style="padding:6px 12px;font-weight:600;">Type de demande</td><td style="padding:6px 12px;">${requestType || 'Non renseigné'}</td></tr>
+        <tr><td style="padding:6px 12px;font-weight:600;">Message</td><td style="padding:6px 12px;">${message || 'Aucun message'}</td></tr>
+      </table>
+    `,
+  });
+
+  // 2. Confirmation to the submitter
+  await transporter.sendMail({
+    from: `"Monolithe" <${process.env.SMTP_USER}>`,
+    to: email,
+    subject: 'Nous avons bien reçu votre message — Monolithe',
+    html: `
+      <p>Bonjour ${name},</p>
+      <p>Nous avons bien reçu votre message et nous vous répondrons dans les plus brefs délais.</p>
+      <p>Cordialement,<br>L'équipe Monolithe</p>
+    `,
+  });
+}
+
+async function sendDevisEmails({ name, email, phone, projectCategory, projectDescription, zipCode, estimateAverage }) {
+  // 1. Notification to contact@monolithe.pro
+  await transporter.sendMail({
+    from: `"Monolithe" <${process.env.SMTP_USER}>`,
+    to: process.env.NOTIFY_EMAIL,
+    subject: `[Nouvelle demande de devis] ${projectCategory || 'Projet'} — ${name}`,
+    html: `
+      <h2>Nouvelle demande de devis</h2>
+      <table style="border-collapse:collapse;font-family:sans-serif;font-size:14px;">
+        <tr><td style="padding:6px 12px;font-weight:600;">Nom</td><td style="padding:6px 12px;">${name}</td></tr>
+        <tr><td style="padding:6px 12px;font-weight:600;">Email</td><td style="padding:6px 12px;">${email}</td></tr>
+        <tr><td style="padding:6px 12px;font-weight:600;">Téléphone</td><td style="padding:6px 12px;">${phone || 'Non renseigné'}</td></tr>
+        <tr><td style="padding:6px 12px;font-weight:600;">Catégorie</td><td style="padding:6px 12px;">${projectCategory || 'Non renseignée'}</td></tr>
+        <tr><td style="padding:6px 12px;font-weight:600;">Description</td><td style="padding:6px 12px;">${projectDescription || 'Non renseignée'}</td></tr>
+        <tr><td style="padding:6px 12px;font-weight:600;">Code postal</td><td style="padding:6px 12px;">${zipCode || 'Non renseigné'}</td></tr>
+        <tr><td style="padding:6px 12px;font-weight:600;">Estimation moyenne</td><td style="padding:6px 12px;">${estimateAverage ? estimateAverage + ' €' : 'N/A'}</td></tr>
+      </table>
+    `,
+  });
+
+  // 2. Confirmation to the submitter
+  await transporter.sendMail({
+    from: `"Monolithe" <${process.env.SMTP_USER}>`,
+    to: email,
+    subject: 'Votre demande de devis a été reçue — Monolithe',
+    html: `
+      <p>Bonjour ${name},</p>
+      <p>Nous avons bien reçu votre demande de devis et nous vous contacterons rapidement pour discuter de votre projet.</p>
+      <p>Cordialement,<br>L'équipe Monolithe</p>
+    `,
+  });
+}
 
 function generateId() {
   return 'sub_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6);
 }
 
 // POST /api/forms/contact
-router.post('/contact', (req, res) => {
+router.post('/contact', async (req, res) => {
   const { name, email, phone, subject, company, requestType, message, source } = req.body;
 
   if (!name || !email) {
@@ -31,11 +119,15 @@ router.post('/contact', (req, res) => {
   );
   req.db.save();
 
+  // Send emails async — don't block the response
+  sendContactEmails({ name, email, phone, subject, company, requestType, message, source })
+    .catch(err => console.error('Contact email error:', err));
+
   res.json({ success: true, id });
 });
 
 // POST /api/forms/devis
-router.post('/devis', (req, res) => {
+router.post('/devis', async (req, res) => {
   const {
     name, email, phone, projectDescription,
     projectCategory, propertyType, propertyAge,
@@ -62,6 +154,10 @@ router.post('/devis', (req, res) => {
      estimateLow || null, estimateHigh || null, estimateAverage || null]
   );
   req.db.save();
+
+  // Send emails async — don't block the response
+  sendDevisEmails({ name, email, phone, projectDescription, projectCategory, zipCode, estimateAverage })
+    .catch(err => console.error('Devis email error:', err));
 
   res.json({ success: true, id });
 });

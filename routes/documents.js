@@ -12,6 +12,7 @@ const router = express.Router();
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
+const s3 = require('../lib/storage');
 
 // Document types with default expiry in months
 const DOCUMENT_TYPES = {
@@ -22,23 +23,9 @@ const DOCUMENT_TYPES = {
   declaration_honneur: { label: 'Déclaration sur l\'honneur', expiryMonths: 12, downloadable: true }
 };
 
-// Configure multer for file uploads
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    const uploadDir = path.join(__dirname, '..', 'uploads', 'documents');
-    if (!fs.existsSync(uploadDir)) {
-      fs.mkdirSync(uploadDir, { recursive: true });
-    }
-    cb(null, uploadDir);
-  },
-  filename: (req, file, cb) => {
-    const uniqueName = `${req.body.artisan_id}_${req.body.document_type}_${Date.now()}${path.extname(file.originalname)}`;
-    cb(null, uniqueName);
-  }
-});
-
+// Use memory storage — files go straight to S3
 const upload = multer({
-  storage,
+  storage: multer.memoryStorage(),
   limits: { fileSize: 10 * 1024 * 1024 }, // 10MB limit
   fileFilter: (req, file, cb) => {
     const allowedTypes = /pdf|jpg|jpeg|png/;
@@ -105,7 +92,7 @@ router.get('/:artisanId', (req, res) => {
 });
 
 // POST /api/documents - Upload/update a document
-router.post('/', upload.single('file'), (req, res) => {
+router.post('/', upload.single('file'), async (req, res) => {
   const { artisan_id, document_type, custom_expiry_date } = req.body;
 
   if (!artisan_id || !document_type) {
@@ -120,51 +107,58 @@ router.post('/', upload.single('file'), (req, res) => {
     return res.status(400).json({ error: 'Aucun fichier téléchargé.' });
   }
 
-  // Calculate expiry date
-  const expiryDate = custom_expiry_date || calculateExpiryDate(document_type);
-  const status = checkDocumentStatus(expiryDate);
+  try {
+    // Upload to S3
+    const { key, url } = await s3.upload(req.file.buffer, req.file.originalname, 'documents');
 
-  // Check if document already exists
-  const existing = req.db.getOne(
-    'SELECT id, file_name FROM artisan_documents WHERE artisan_id = ? AND document_type = ?',
-    [artisan_id, document_type]
-  );
+    // Calculate expiry date
+    const expiryDate = custom_expiry_date || calculateExpiryDate(document_type);
+    const status = checkDocumentStatus(expiryDate);
 
-  if (existing) {
-    // Delete old file if it exists
-    if (existing.file_name) {
-      const oldFilePath = path.join(__dirname, '..', 'uploads', 'documents', existing.file_name);
-      if (fs.existsSync(oldFilePath)) {
-        fs.unlinkSync(oldFilePath);
+    // Check if document already exists
+    const existing = req.db.getOne(
+      'SELECT id, file_key FROM artisan_documents WHERE artisan_id = ? AND document_type = ?',
+      [artisan_id, document_type]
+    );
+
+    if (existing) {
+      // Delete old file from S3 if it exists
+      if (existing.file_key) {
+        await s3.remove(existing.file_key).catch(err =>
+          console.error('S3 delete old doc error:', err)
+        );
       }
+
+      // Update existing document
+      req.db.run(`
+        UPDATE artisan_documents
+        SET file_name = ?, file_url = ?, file_key = ?, upload_date = datetime('now'),
+            expiry_date = ?, is_not_concerned = 0, status = ?
+        WHERE id = ?
+      `, [req.file.originalname, url, key, expiryDate, status, existing.id]);
+
+      req.db.save();
+
+      const updated = req.db.getOne('SELECT * FROM artisan_documents WHERE id = ?', [existing.id]);
+      return res.json(updated);
+    } else {
+      // Insert new document
+      const id = 'doc' + Date.now();
+
+      req.db.run(`
+        INSERT INTO artisan_documents
+          (id, artisan_id, document_type, file_name, file_url, file_key, expiry_date, status)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+      `, [id, artisan_id, document_type, req.file.originalname, url, key, expiryDate, status]);
+
+      req.db.save();
+
+      const created = req.db.getOne('SELECT * FROM artisan_documents WHERE id = ?', [id]);
+      return res.status(201).json(created);
     }
-
-    // Update existing document
-    req.db.run(`
-      UPDATE artisan_documents
-      SET file_name = ?, upload_date = datetime('now'), expiry_date = ?,
-          is_not_concerned = 0, status = ?
-      WHERE id = ?
-    `, [req.file.filename, expiryDate, status, existing.id]);
-
-    req.db.save();
-
-    const updated = req.db.getOne('SELECT * FROM artisan_documents WHERE id = ?', [existing.id]);
-    return res.json(updated);
-  } else {
-    // Insert new document
-    const id = 'doc' + Date.now();
-
-    req.db.run(`
-      INSERT INTO artisan_documents
-        (id, artisan_id, document_type, file_name, expiry_date, status)
-      VALUES (?, ?, ?, ?, ?, ?)
-    `, [id, artisan_id, document_type, req.file.filename, expiryDate, status]);
-
-    req.db.save();
-
-    const created = req.db.getOne('SELECT * FROM artisan_documents WHERE id = ?', [id]);
-    return res.status(201).json(created);
+  } catch (err) {
+    console.error('Document upload error:', err);
+    res.status(500).json({ error: "Erreur lors de l'upload du fichier." });
   }
 });
 
@@ -214,21 +208,20 @@ router.post('/not-concerned', (req, res) => {
 });
 
 // DELETE /api/documents/:id - Delete a document
-router.delete('/:id', (req, res) => {
+router.delete('/:id', async (req, res) => {
   const { id } = req.params;
 
-  const document = req.db.getOne('SELECT file_name FROM artisan_documents WHERE id = ?', [id]);
+  const document = req.db.getOne('SELECT file_key FROM artisan_documents WHERE id = ?', [id]);
 
   if (!document) {
     return res.status(404).json({ error: 'Document non trouvé.' });
   }
 
-  // Delete file if it exists
-  if (document.file_name) {
-    const filePath = path.join(__dirname, '..', 'uploads', 'documents', document.file_name);
-    if (fs.existsSync(filePath)) {
-      fs.unlinkSync(filePath);
-    }
+  // Delete file from S3 if it exists
+  if (document.file_key) {
+    await s3.remove(document.file_key).catch(err =>
+      console.error('S3 delete error:', err)
+    );
   }
 
   req.db.run('DELETE FROM artisan_documents WHERE id = ?', [id]);
@@ -240,13 +233,15 @@ router.delete('/:id', (req, res) => {
 // GET /api/documents/download/:filename - Download a document
 router.get('/download/:filename', (req, res) => {
   const { filename } = req.params;
-  const filePath = path.join(__dirname, '..', 'uploads', 'documents', filename);
 
-  if (!fs.existsSync(filePath)) {
+  // Try to find by file_name and redirect to S3 URL
+  const doc = req.db.getOne('SELECT file_url FROM artisan_documents WHERE file_name = ?', [filename]);
+
+  if (!doc || !doc.file_url) {
     return res.status(404).json({ error: 'Fichier non trouvé.' });
   }
 
-  res.download(filePath);
+  res.redirect(doc.file_url);
 });
 
 // GET /api/documents/templates/:type - Download template documents

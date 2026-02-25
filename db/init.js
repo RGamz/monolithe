@@ -13,6 +13,7 @@
 const initSqlJs = require('sql.js');
 const fs = require('fs');
 const path = require('path');
+const bcrypt = require('bcrypt');
 require('dotenv').config({ path: path.join(__dirname, '..', '.env') });
 
 const dbPath = path.resolve(__dirname, '..', process.env.DB_PATH || './db/database.sqlite');
@@ -185,7 +186,7 @@ async function initialize() {
     console.log('   To force a fresh seed, delete db/database.sqlite and run again.');
   } else {
     console.log('🌱 Empty database detected — seeding demo data...\n');
-    seedData(db);
+    await seedData(db);
   }
 
   // ------------------------------------------------------------------
@@ -208,15 +209,17 @@ async function initialize() {
 // ------------------------------------------------------------------
 // SEED FUNCTION (only called when database is empty)
 // ------------------------------------------------------------------
-function seedData(db) {
+async function seedData(db) {
+  const hashedPassword = await bcrypt.hash('password123', 10);
+
   // --- Users ---
   const users = [
-    ['u1', 'Sarah Jenkins', 'admin@company.com', 'password123', 'ADMIN', 1, null, null, null, null, null, null],
-    ['u2', 'Jean le Plombier', 'john@artisan.com', 'password123', 'ARTISAN', 0, 'JP Services', 'Plomberie', '12 Rue de Metz, 31000 Toulouse', 43.6000, 1.4430, 'missing'],
-    ['u3', 'Alice Corporation', 'contact@alicecorp.com', 'password123', 'CLIENT', 1, 'Alice Corp HQ', null, null, null, null, null],
-    ['u4', 'Mike Électricité', 'mike@sparky.com', 'password123', 'ARTISAN', 1, 'Sparky Bros', 'Électricité', '45 Avenue de Grande Bretagne, 31300 Toulouse', 43.6060, 1.4100, 'compliant'],
-    ['u5', 'Pierre Menuiserie', 'pierre@woodworks.com', 'password123', 'ARTISAN', 1, 'Au Cœur du Bois', 'Menuiserie', '8 Chemin de la Chasse, 31770 Colomiers', 43.6112, 1.3413, 'compliant'],
-    ['u6', 'Marie Peinture', 'marie@couleurs.com', 'password123', 'ARTISAN', 1, 'Déco 31', 'Peinture', '22 Avenue des Mimosas, 31130 Balma', 43.6110, 1.4994, 'expired'],
+    ['u1', 'Sarah Jenkins', 'admin@company.com', hashedPassword, 'ADMIN', 1, null, null, null, null, null, null],
+    ['u2', 'Jean le Plombier', 'john@artisan.com', hashedPassword, 'ARTISAN', 0, 'JP Services', 'Plomberie', '12 Rue de Metz, 31000 Toulouse', 43.6000, 1.4430, 'missing'],
+    ['u3', 'Alice Corporation', 'contact@alicecorp.com', hashedPassword, 'CLIENT', 1, 'Alice Corp HQ', null, null, null, null, null],
+    ['u4', 'Mike Électricité', 'mike@sparky.com', hashedPassword, 'ARTISAN', 1, 'Sparky Bros', 'Électricité', '45 Avenue de Grande Bretagne, 31300 Toulouse', 43.6060, 1.4100, 'compliant'],
+    ['u5', 'Pierre Menuiserie', 'pierre@woodworks.com', hashedPassword, 'ARTISAN', 1, 'Au Cœur du Bois', 'Menuiserie', '8 Chemin de la Chasse, 31770 Colomiers', 43.6112, 1.3413, 'compliant'],
+    ['u6', 'Marie Peinture', 'marie@couleurs.com', hashedPassword, 'ARTISAN', 1, 'Déco 31', 'Peinture', '22 Avenue des Mimosas, 31130 Balma', 43.6110, 1.4994, 'expired'],
   ];
 
   for (const u of users) {

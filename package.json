@@ -7,7 +7,8 @@
     "start": "node server.js",
     "dev": "node --watch server.js",
     "init-db": "node db/init.js",
-    "migrate-photos": "node db/migrate-photos.js"
+    "migrate-photos": "node db/migrate-photos.js",
+    "migrate-bcrypt": "node db/migrate-bcrypt.js"
   },
   "dependencies": {
     "express": "^4.21.0",

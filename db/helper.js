@@ -100,11 +100,15 @@ function save() {
 
 /**
  * Close the database connection.
+ * NOTE: We do NOT save() here intentionally — every write operation
+ * calls save() explicitly. Saving on close risks overwriting the disk
+ * file with a stale in-memory state if the DB was modified externally
+ * (e.g. by a migration script) while the app was running.
  */
 function close() {
   if (db) {
-    save();
     db.close();
+    db = null;
     console.log('🛑 Database connection closed.');
   }
 }

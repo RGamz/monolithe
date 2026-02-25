@@ -46,7 +46,7 @@ function buildInvoiceRow(inv, projTitle) {
     + '<td style="font-weight: 500;">' + Number(inv.amount).toLocaleString('fr-FR') + ' €</td>'
     + '<td><span class="badge ' + badgeClass + '">' + inv.status + '</span></td>'
     + '<td class="invoice-file-cell">'
-    + '<span class="invoice-filename" title="' + inv.file_name + '" onclick="viewInvoice(\'' + inv.file_name + '\')">'
+    + '<span class="invoice-filename" title="' + inv.file_name + '" onclick="viewInvoice(\'' + (inv.file_url || '') + '\')">'
     + INVOICE_ICONS.eye + '<span>' + shortName + '</span>'
     + '</span></td>'
     + '<td class="invoice-actions-cell">' + deleteBtn + '</td>'
@@ -174,8 +174,12 @@ async function handleUpload(e, user, projects) {
   }
 }
 
-function viewInvoice(fileName) {
-  alert('Fichier : ' + fileName + '\n\nLe stockage des fichiers sera disponible après la migration vers OVH Object Storage.');
+function viewInvoice(fileUrl) {
+  if (fileUrl) {
+    window.open(fileUrl, '_blank');
+  } else {
+    alert('Fichier non disponible.');
+  }
 }
 
 async function deleteInvoice(invoiceId) {

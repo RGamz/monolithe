@@ -456,7 +456,7 @@ function renderDocumentRow(doc) {
         </div>
 
         ${doc.file_name && !doc.is_not_concerned ? `
-          <button class="btn btn-secondary" style="width: auto;" onclick="downloadDocument('${doc.file_name}')">
+          <button class="btn btn-secondary" style="width: auto;" onclick="downloadDocument('${doc.file_url || doc.file_name}')">
             ${PROFILE_ICONS.download}
             Télécharger
           </button>

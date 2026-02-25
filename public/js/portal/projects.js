@@ -460,7 +460,7 @@ function renderPhotoGrid(projectId, type) {
     const allOfType = (photosCache[projectId] || {})[type] || [];
     return `
       <div class="photo-thumb" onclick="openLightbox('${projectId}', '${type}', ${i})">
-        <img src="/uploads/photos/${photo.file_name}" alt="Photo ${type}" loading="lazy">
+        <img src="${photo.file_url || `/uploads/photos/${photo.file_name}`}" alt="Photo ${type}" loading="lazy">
         ${canDelete ? `
           <button class="photo-delete-btn" title="Supprimer" 
                   onclick="event.stopPropagation(); deletePhoto('${photo.id}', '${projectId}', '${type}')">
@@ -589,7 +589,7 @@ function closeLightbox(event) {
 function renderLightbox() {
   const photo = lightboxPhotos[lightboxIndex];
   if (!photo) return;
-  document.getElementById('lightbox-img').src = `/uploads/photos/${photo.file_name}`;
+  document.getElementById('lightbox-img').src = photo.file_url || `/uploads/photos/${photo.file_name}`;
   document.getElementById('lightbox-counter').textContent = `${lightboxIndex + 1} / ${lightboxPhotos.length}`;
   document.getElementById('lightbox-prev').style.visibility = lightboxIndex > 0 ? 'visible' : 'hidden';
   document.getElementById('lightbox-next').style.visibility = lightboxIndex < lightboxPhotos.length - 1 ? 'visible' : 'hidden';

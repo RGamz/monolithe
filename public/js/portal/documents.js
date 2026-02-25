@@ -169,7 +169,7 @@ function renderDocumentRow(doc) {
           ${templateButton}
 
           ${doc.file_name && !doc.is_not_concerned ? `
-            <button class="btn btn-secondary" style="width: auto;" onclick="downloadDocument('${doc.file_name}')">
+            <button class="btn btn-secondary" style="width: auto;" onclick="downloadDocument('${doc.file_url || doc.file_name}')">
               ${DOC_ICONS.download}
               Télécharger
             </button>
@@ -288,8 +288,12 @@ async function deleteDocument(docId, docLabel) {
   }
 }
 
-function downloadDocument(filename) {
-  window.open(`/api/documents/download/${filename}`, '_blank');
+function downloadDocument(fileOrUrl) {
+  if (fileOrUrl.startsWith('http')) {
+    window.open(fileOrUrl, '_blank');
+  } else {
+    window.open(`/api/documents/download/${fileOrUrl}`, '_blank');
+  }
 }
 
 function downloadTemplate(documentType) {

@@ -42,7 +42,6 @@ function showView(viewName) {
   document.getElementById('login-view').classList.add('hidden');
   document.getElementById('forgot-view').classList.add('hidden');
   document.getElementById('reset-sent-view').classList.add('hidden');
-  document.getElementById('reset-new-view').classList.add('hidden');
 
   // Clear all error messages
   document.querySelectorAll('.alert-error').forEach(el => el.classList.add('hidden'));
@@ -63,9 +62,6 @@ function showView(viewName) {
     case 'reset-sent':
       document.getElementById('reset-sent-view').classList.remove('hidden');
       document.getElementById('sent-email-display').textContent = resetEmail;
-      break;
-    case 'reset-new':
-      document.getElementById('reset-new-view').classList.remove('hidden');
       break;
   }
 }
@@ -141,11 +137,11 @@ document.getElementById('forgot-form').addEventListener('submit', async function
 
     const data = await response.json();
 
-    if (data.exists) {
+    if (data.sent) {
       resetEmail = email;
       showView('reset-sent');
     } else {
-      errorEl.textContent = 'Aucun compte trouvé avec cette adresse e-mail.';
+      errorEl.textContent = data.error || 'Une erreur est survenue.';
       errorEl.classList.remove('hidden');
     }
 
@@ -154,68 +150,6 @@ document.getElementById('forgot-form').addEventListener('submit', async function
     errorEl.classList.remove('hidden');
   } finally {
     btn.textContent = 'Envoyer le lien';
-    btn.disabled = false;
-  }
-});
-
-// ---------------------------------------------------------------
-// 4. RESET PASSWORD
-// ---------------------------------------------------------------
-document.getElementById('reset-form').addEventListener('submit', async function (e) {
-  e.preventDefault();
-
-  const newPassword = document.getElementById('new-password').value;
-  const confirmPassword = document.getElementById('confirm-password').value;
-  const errorEl = document.getElementById('reset-error');
-  const btn = document.getElementById('reset-btn');
-
-  errorEl.classList.add('hidden');
-
-  // Validate
-  if (newPassword !== confirmPassword) {
-    errorEl.textContent = 'Les mots de passe ne correspondent pas.';
-    errorEl.classList.remove('hidden');
-    return;
-  }
-
-  if (newPassword.length < 6) {
-    errorEl.textContent = 'Le mot de passe doit contenir au moins 6 caractères.';
-    errorEl.classList.remove('hidden');
-    return;
-  }
-
-  btn.textContent = 'Réinitialisation...';
-  btn.disabled = true;
-
-  try {
-    const response = await fetch('/api/auth/reset-password', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email: resetEmail, newPassword })
-    });
-
-    const data = await response.json();
-
-    if (data.success) {
-      // Show success on login page
-      showView('login');
-      const successEl = document.getElementById('login-success');
-      document.getElementById('login-success-text').textContent = 'Mot de passe réinitialisé avec succès. Veuillez vous connecter.';
-      successEl.classList.remove('hidden');
-      // Clear password fields
-      document.getElementById('new-password').value = '';
-      document.getElementById('confirm-password').value = '';
-      document.getElementById('login-password').value = '';
-    } else {
-      errorEl.textContent = 'Échec de la réinitialisation du mot de passe.';
-      errorEl.classList.remove('hidden');
-    }
-
-  } catch (err) {
-    errorEl.textContent = 'Une erreur est survenue.';
-    errorEl.classList.remove('hidden');
-  } finally {
-    btn.textContent = 'Définir le nouveau mot de passe';
     btn.disabled = false;
   }
 });

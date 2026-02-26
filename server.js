@@ -74,6 +74,7 @@ routeWithSlash('/pro/portail', 'portal', 'login.html');
 const portalPages = [
   'dashboard', 'invoices', 'directory', 'projects',
   'documents', 'onboarding', 'admin', 'artisan-profile',
+  'reset-password',
   'client-submissions'
 ];
 portalPages.forEach(page => {

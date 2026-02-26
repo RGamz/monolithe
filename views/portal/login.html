@@ -87,56 +87,19 @@
 
       <!-- ============================================
            VIEW 3: EMAIL SENT CONFIRMATION
-           ============================================ -->
+           ============================================ -->\
       <div id="reset-sent-view" class="hidden">
         <div class="text-center">
           <div class="auth-icon green">
             <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m9 11 3 3L22 4"/></svg>
           </div>
           <h1 class="auth-title">Vérifiez votre e-mail</h1>
-          <p class="auth-subtitle">Nous avons envoyé un lien de réinitialisation à <strong id="sent-email-display"></strong>.</p>
+          <p class="auth-subtitle">Si un compte existe pour <strong id="sent-email-display"></strong>, vous recevrez un lien de réinitialisation dans quelques minutes.</p>
 
-          <div class="demo-box">
-            Pour cette démo, imaginez que vous avez cliqué sur le lien dans votre e-mail.
-          </div>
-
-          <button class="btn btn-primary mb-4" onclick="showView('reset-new')">
-            [Démo] Simuler le clic sur le lien
-          </button>
-
-          <button class="btn-ghost" onclick="showView('login')" style="display: block; margin: 0 auto;">
+          <button class="btn-ghost" onclick="showView('login')" style="display: block; margin: 24px auto 0;">
             Retour à la connexion
           </button>
         </div>
-      </div>
-
-      <!-- ============================================
-           VIEW 4: SET NEW PASSWORD
-           ============================================ -->
-      <div id="reset-new-view" class="hidden">
-        <div class="text-center mb-6">
-          <div class="auth-icon purple">
-            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15.5 7.5 2.3 2.3a1 1 0 0 0 1.4 0l2.1-2.1a1 1 0 0 0 0-1.4L19 4"/><path d="m21 2-9.6 9.6"/><circle cx="7.5" cy="15.5" r="5.5"/></svg>
-          </div>
-          <h1 class="auth-title">Nouveau mot de passe</h1>
-          <p class="auth-subtitle">Créez un nouveau mot de passe sécurisé.</p>
-        </div>
-
-        <form id="reset-form">
-          <div class="form-group">
-            <label class="form-label">Nouveau mot de passe</label>
-            <input type="password" id="new-password" class="form-input" placeholder="Nouveau mot de passe" required>
-          </div>
-
-          <div class="form-group">
-            <label class="form-label">Confirmer le mot de passe</label>
-            <input type="password" id="confirm-password" class="form-input" placeholder="Confirmer le mot de passe" required>
-          </div>
-
-          <div id="reset-error" class="alert alert-error hidden"></div>
-
-          <button type="submit" id="reset-btn" class="btn btn-primary">Définir le nouveau mot de passe</button>
-        </form>
       </div>
 
     </div>

@@ -141,24 +141,31 @@ router.put('/:id', (req, res) => {
     }
   }
 
+  // For ADMIN/CLIENT roles, clear artisan-specific fields unless explicitly provided
+  const resolvedRole = role || req.db.getOne('SELECT role FROM users WHERE id = ?', [id])?.role;
+  const isArtisan = resolvedRole === 'ARTISAN';
+
   req.db.run(`
     UPDATE users SET
       name = COALESCE(?, name),
       email = COALESCE(?, email),
       password = COALESCE(?, password),
       role = COALESCE(?, role),
-      company_name = COALESCE(?, company_name),
-      specialty = COALESCE(?, specialty),
-      address = COALESCE(?, address),
-      lat = COALESCE(?, lat),
-      lng = COALESCE(?, lng),
-      documents_status = COALESCE(?, documents_status),
+      company_name = ?,
+      specialty = ?,
+      address = ?,
+      lat = ?,
+      lng = ?,
+      documents_status = ?,
       is_onboarded = COALESCE(?, is_onboarded)
     WHERE id = ?
   `, [
     name || null, email || null, password || null, role || null,
-    company_name || null, specialty || null, address || null,
-    lat || null, lng || null, documents_status || null,
+    isArtisan ? (company_name || null) : (company_name || null),
+    isArtisan ? (specialty || null) : null,
+    address || null,
+    lat || null, lng || null,
+    isArtisan ? (documents_status || null) : null,
     is_onboarded !== undefined ? is_onboarded : null,
     id
   ]);

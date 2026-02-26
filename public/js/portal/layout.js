@@ -85,6 +85,7 @@ const PAGE_TITLES = {
   'projects': 'Suivi des projets',
   'admin': 'Gestion des utilisateurs',
   'client-submissions': 'Demandes clients',
+  'moderation': 'Modération',
   'artisan-profile': 'Profil Artisan',
 };
 
@@ -116,6 +117,7 @@ function buildSidebar(user, currentPage) {
   
   if (user.role === 'ADMIN') {
     navItems += navItem('client-submissions', ICONS.inbox, 'Demandes clients', currentPage);
+    navItems += navItemWithBadge('moderation', ICONS.inbox, 'Modération', currentPage);
     navItems += navItem('directory', ICONS.users, 'Annuaire des artisans', currentPage);
     navItems += navItem('projects', ICONS.folder, 'Suivi des projets', currentPage);
     navItems += navItem('admin', ICONS.userCog, 'Gestion utilisateurs', currentPage);
@@ -163,6 +165,36 @@ function navItem(page, icon, label, currentPage) {
       ${label}
     </a>
   `;
+}
+
+function navItemWithBadge(page, icon, label, currentPage) {
+  const isActive = page === currentPage ? 'active' : '';
+  const href = `/pro/portail/${page}`;
+
+  return `
+    <a href="${href}" class="nav-item ${isActive}" style="justify-content: space-between;">
+      <span style="display: flex; align-items: center; gap: 10px;">${icon}${label}</span>
+      <span id="mod-badge" style="display:none; background: #ef4444; color: white; font-size: 0.7rem; font-weight: 700; padding: 1px 7px; border-radius: 12px; min-width: 20px; text-align: center;"></span>
+    </a>
+  `;
+}
+
+// Load moderation counter for sidebar badge
+async function loadModerationBadge() {
+  try {
+    const res = await fetch('/api/moderation/pending');
+    const data = await res.json();
+    const total = data.reduce((n, a) => n + a.items.length, 0);
+    const badge = document.getElementById('mod-badge');
+    if (badge) {
+      if (total > 0) {
+        badge.textContent = total;
+        badge.style.display = 'inline-block';
+      } else {
+        badge.style.display = 'none';
+      }
+    }
+  } catch {}
 }
 
 // ---------------------------------------------------------------
@@ -252,6 +284,11 @@ function initLayout(pageName) {
     overlay.addEventListener('click', function() {
       toggleMobileMenu(false);
     });
+  }
+
+  // Load moderation badge for admin
+  if (user.role === 'ADMIN') {
+    loadModerationBadge();
   }
   
   return user;

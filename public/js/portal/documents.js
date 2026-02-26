@@ -109,6 +109,11 @@ function renderDocumentRow(doc) {
   let statusBadge = '';
   if (doc.is_not_concerned) {
     statusBadge = '<span class="badge" style="background: var(--slate-200); color: var(--slate-600);">Non concerné</span>';
+  } else if (doc.moderation_status === 'en_attente' && doc.file_name) {
+    statusBadge = '<span class="badge badge-pending">En attente de modération</span>';
+  } else if (doc.moderation_status === 'rejeté') {
+    statusBadge = '<span class="badge" style="background: var(--red-100); color: var(--red-700);">Rejeté</span>'
+      + (doc.moderation_note ? '<br><span style="font-size:0.75rem;color:#dc2626;">Motif : ' + doc.moderation_note + '</span>' : '');
   } else if (doc.status === 'valid' && doc.file_name) {
     statusBadge = '<span class="badge badge-complete">Conforme</span>';
   } else if (doc.status === 'expired') {

@@ -68,8 +68,8 @@ router.get('/:artisanId', (req, res) => {
   const { artisanId } = req.params;
 
   const documents = req.db.getAll(`
-    SELECT id, artisan_id, document_type, file_name, upload_date,
-           expiry_date, is_not_concerned, status
+    SELECT id, artisan_id, document_type, file_name, file_url, upload_date,
+           expiry_date, is_not_concerned, status, moderation_status, moderation_note
     FROM artisan_documents
     WHERE artisan_id = ?
     ORDER BY document_type
@@ -133,7 +133,8 @@ router.post('/', upload.single('file'), async (req, res) => {
       req.db.run(`
         UPDATE artisan_documents
         SET file_name = ?, file_url = ?, file_key = ?, upload_date = datetime('now'),
-            expiry_date = ?, is_not_concerned = 0, status = ?
+            expiry_date = ?, is_not_concerned = 0, status = ?,
+            moderation_status = 'en_attente', moderation_note = NULL
         WHERE id = ?
       `, [req.file.originalname, url, key, expiryDate, status, existing.id]);
 

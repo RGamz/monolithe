@@ -63,8 +63,8 @@ router.post('/', upload.single('file'), async (req, res) => {
     const invoiceDate = date || new Date().toISOString().split('T')[0];
 
     req.db.run(`
-      INSERT INTO invoices (id, project_id, artisan_id, amount, date, status, file_name, file_url, file_key)
-      VALUES (?, ?, ?, ?, ?, 'En attente', ?, ?, ?)
+      INSERT INTO invoices (id, project_id, artisan_id, amount, date, status, file_name, file_url, file_key, moderation_status)
+      VALUES (?, ?, ?, ?, ?, 'En attente', ?, ?, ?, 'en_attente')
     `, [id, project_id, artisan_id, amount, invoiceDate, req.file.originalname, url, key]);
 
     req.db.save();

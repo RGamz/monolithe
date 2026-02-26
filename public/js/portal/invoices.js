@@ -30,21 +30,38 @@ function truncateFilename(name, maxChars) {
 
 function buildInvoiceRow(inv, projTitle) {
   let badgeClass = 'badge-pending';
-  if (inv.status === 'Payé') badgeClass = 'badge-paid';
-  else if (inv.status === 'Rejeté') badgeClass = 'badge-rejected';
+  let badgeLabel = inv.status;
 
-  const canDelete = inv.status === 'En attente';
+  if (inv.moderation_status === 'en_attente') {
+    badgeClass = 'badge-pending';
+    badgeLabel = 'En attente de modération';
+  } else if (inv.moderation_status === 'rejeté') {
+    badgeClass = 'badge-rejected';
+    badgeLabel = 'Rejeté';
+  } else if (inv.status === 'Payé') {
+    badgeClass = 'badge-paid';
+    badgeLabel = 'Payé';
+  } else if (inv.status === 'Rejeté') {
+    badgeClass = 'badge-rejected';
+    badgeLabel = 'Rejeté';
+  }
+
+  const canDelete = inv.moderation_status === 'en_attente' || inv.status === 'En attente';
   const shortName = truncateFilename(inv.file_name || 'facture.pdf');
 
   const deleteBtn = canDelete
     ? '<button class="invoice-delete-btn" title="Supprimer" onclick="deleteInvoice(\'' + inv.id + '\')">' + INVOICE_ICONS.trash + '</button>'
     : '';
 
+  const rejectionNote = inv.moderation_note && inv.moderation_status === 'rejeté'
+    ? '<br><span style="font-size:0.75rem;color:#dc2626;">Motif : ' + inv.moderation_note + '</span>'
+    : '';
+
   return '<tr data-invoice-id="' + inv.id + '">'
     + '<td style="color: var(--slate-800);">' + (projTitle || inv.project_title || 'Projet inconnu') + '</td>'
     + '<td>' + (inv.date || 'N/A') + '</td>'
     + '<td style="font-weight: 500;">' + Number(inv.amount).toLocaleString('fr-FR') + ' €</td>'
-    + '<td><span class="badge ' + badgeClass + '">' + inv.status + '</span></td>'
+    + '<td><span class="badge ' + badgeClass + '">' + badgeLabel + '</span>' + rejectionNote + '</td>'
     + '<td class="invoice-file-cell">'
     + '<span class="invoice-filename" title="' + inv.file_name + '" onclick="viewInvoice(\'' + (inv.file_url || '') + '\')">'
     + INVOICE_ICONS.eye + '<span>' + shortName + '</span>'
@@ -103,13 +120,6 @@ function buildInvoicesHTML(invoices, projects) {
     + '</tr></thead>'
     + '<tbody id="invoice-table-body">' + rows + '</tbody>'
     + '</table></div></div>'
-    + '<div class="compliance-section">'
-    + '<h3>Documents de conformité</h3>'
-    + '<p>Téléchargez vos documents d\'assurance et de certification ici.</p>'
-    + '<div class="compliance-buttons">'
-    + '<button class="btn btn-secondary">Télécharger l\'attestation d\'assurance</button>'
-    + '<button class="btn btn-secondary">Télécharger la licence commerciale</button>'
-    + '</div></div></div>'
     + '<div><div class="upload-card">'
     + '<h2 class="upload-title">' + INVOICE_ICONS.upload + ' Soumettre une nouvelle facture</h2>'
     + '<form id="upload-form">'

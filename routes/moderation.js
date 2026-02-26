@@ -123,9 +123,10 @@ router.post('/review', async (req, res) => {
 
     // Apply decision to DB
     if (d.item_type === 'invoice') {
+      const invoiceStatus = d.decision === 'rejeté' ? 'Rejeté' : 'En attente';
       req.db.run(
-        `UPDATE invoices SET moderation_status = ?, moderation_note = ? WHERE id = ?`,
-        [d.decision, d.note || null, d.id]
+        `UPDATE invoices SET moderation_status = ?, moderation_note = ?, status = ? WHERE id = ?`,
+        [d.decision, d.note || null, invoiceStatus, d.id]
       );
     } else if (d.item_type === 'document') {
       const newStatus = d.decision === 'approuvé' ? 'valid' : 'missing';

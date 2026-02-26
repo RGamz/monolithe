@@ -7,7 +7,9 @@
     "start": "node server.js",
     "dev": "node --watch server.js",
     "init-db": "node db/init.js",
-    "migrate-moderation": "node db/migrate-moderation.js"
+    "migrate-moderation": "node db/migrate-moderation.js",
+    "migrate-phone": "node db/migrate-phone.js",
+    "import-artisans": "node db/import-artisans.js"
   },
   "dependencies": {
     "express": "^4.21.0",

@@ -90,7 +90,7 @@
   // BUILD FOOTER
   // ------------------------------------------------------------------
   function buildFooter() {
-    const label = isPro ? '© 2025 Monolithe PRO.' : '© 2025 Monolithe.';
+    const label = isPro ? '© 2026 Monolithe PRO.' : '© 2026 Monolithe.';
     return `
     <footer class="footer">
         <div class="container footer-inner">

@@ -43,6 +43,7 @@ async function initialize() {
       company_name TEXT,
       specialty TEXT,
       address TEXT,
+      phone TEXT,
       lat REAL,
       lng REAL,
       documents_status TEXT CHECK(documents_status IN ('compliant', 'missing', 'expired'))

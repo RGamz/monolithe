@@ -16,7 +16,7 @@ const router = express.Router();
 // GET /api/users — All users (for admin panel)
 router.get('/', (req, res) => {
   const users = req.db.getAll(`
-    SELECT id, name, email, role, is_onboarded, company_name, specialty,
+    SELECT id, name, email, role, is_onboarded, company_name, specialty, phone,
            address, lat, lng, documents_status
     FROM users
     ORDER BY role, name
@@ -59,7 +59,7 @@ router.get('/', (req, res) => {
 // GET /api/users/artisans
 router.get('/artisans', (req, res) => {
   const artisans = req.db.getAll(`
-    SELECT id, name, email, role, is_onboarded, company_name, specialty, 
+    SELECT id, name, email, role, is_onboarded, company_name, specialty, phone,
            address, lat, lng, documents_status
     FROM users WHERE role = 'ARTISAN' ORDER BY name
   `);
@@ -69,7 +69,7 @@ router.get('/artisans', (req, res) => {
 // GET /api/users/clients
 router.get('/clients', (req, res) => {
   const clients = req.db.getAll(`
-    SELECT id, name, email, role, is_onboarded, company_name, specialty, 
+    SELECT id, name, email, role, is_onboarded, company_name, specialty, phone,
            address, lat, lng, documents_status
     FROM users WHERE role = 'CLIENT' ORDER BY name
   `);
@@ -114,7 +114,7 @@ router.post('/', (req, res) => {
   req.db.save();
 
   const created = req.db.getOne(`
-    SELECT id, name, email, role, is_onboarded, company_name, specialty, 
+    SELECT id, name, email, role, is_onboarded, company_name, specialty, phone,
            address, lat, lng, documents_status
     FROM users WHERE id = ?
   `, [id]);
@@ -173,7 +173,7 @@ router.put('/:id', (req, res) => {
   req.db.save();
 
   const updated = req.db.getOne(`
-    SELECT id, name, email, role, is_onboarded, company_name, specialty, 
+    SELECT id, name, email, role, is_onboarded, company_name, specialty, phone,
            address, lat, lng, documents_status
     FROM users WHERE id = ?
   `, [id]);
@@ -220,7 +220,7 @@ router.post('/profile', (req, res) => {
   req.db.save();
 
   const updated = req.db.getOne(`
-    SELECT id, name, email, role, is_onboarded, company_name, specialty, 
+    SELECT id, name, email, role, is_onboarded, company_name, specialty, phone,
            address, lat, lng, documents_status
     FROM users WHERE id = ?
   `, [userId]);

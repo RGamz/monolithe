@@ -14,8 +14,8 @@ if (!raw) {
 
 const currentUser = JSON.parse(raw);
 
-// If already onboarded, go to dashboard
-if (currentUser.is_onboarded) {
+// If already onboarded OR not an artisan, go to dashboard
+if (currentUser.is_onboarded || currentUser.role !== 'ARTISAN') {
   window.location.href = '/pro/portail/dashboard';
 }
 

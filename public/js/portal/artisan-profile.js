@@ -164,6 +164,12 @@ function renderProfileHeader() {
                 ${PROFILE_ICONS.mail}
                 <a href="mailto:${artisan.email}" style="color: var(--blue-600);">${artisan.email}</a>
               </div>
+              ${artisan.phone ? `
+                <div style="display: flex; align-items: center; gap: 8px;">
+                  ${PROFILE_ICONS.phone}
+                  <a href="tel:${artisan.phone}" style="color: var(--blue-600);">${artisan.phone}</a>
+                </div>
+              ` : ''}
               ${artisan.address ? `
                 <div style="display: flex; align-items: center; gap: 8px;">
                   ${PROFILE_ICONS.mapPin}

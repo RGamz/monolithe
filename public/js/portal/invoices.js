@@ -131,25 +131,29 @@ async function handleUpload(e, user, projects) {
   const projectId = document.getElementById('upload-project').value;
   const amount = parseFloat(document.getElementById('upload-amount').value);
   const fileInput = document.getElementById('upload-file');
-  const fileName = fileInput.files[0] ? fileInput.files[0].name : 'facture.pdf';
   const btn = document.getElementById('upload-btn');
 
-  if (!projectId || !amount) return;
+  if (!projectId || !amount || !fileInput.files[0]) return;
 
   btn.textContent = 'Téléchargement...';
   btn.disabled = true;
 
   try {
+    const formData = new FormData();
+    formData.append('project_id', projectId);
+    formData.append('artisan_id', user.id);
+    formData.append('amount', amount);
+    formData.append('file', fileInput.files[0]);
+
     const res = await fetch('/api/invoices', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        project_id: projectId,
-        artisan_id: user.id,
-        amount: amount,
-        file_name: fileName
-      })
+      body: formData
     });
+
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.error || 'Erreur lors de l\'upload.');
+    }
 
     const newInvoice = await res.json();
 
@@ -168,6 +172,7 @@ async function handleUpload(e, user, projects) {
 
   } catch (err) {
     console.error('Upload error:', err);
+    alert(err.message);
   } finally {
     btn.textContent = 'Soumettre la facture';
     btn.disabled = false;

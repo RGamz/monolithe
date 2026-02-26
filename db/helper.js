@@ -1,109 +1,63 @@
 /**
  * Database Helper (db/helper.js)
  * --------------------------------
- * Wraps sql.js with a friendlier API.
- * 
- * sql.js returns results as { columns: [...], values: [[...], ...] }
- * This helper converts them to arrays of objects like:
- *   [{ id: 'u1', name: 'Sarah' }, ...]
- * 
- * This way, our route files can work with normal objects
- * instead of dealing with sql.js's raw format.
+ * Wraps better-sqlite3 with the same API as before.
+ *
+ * better-sqlite3 is synchronous and writes directly to disk on every
+ * run() call — no manual save() needed, no in-memory state to worry about.
+ *
+ * save() is kept as a no-op for backward compatibility with all route files.
  */
 
-const initSqlJs = require('sql.js');
-const fs = require('fs');
+const Database = require('better-sqlite3');
 const path = require('path');
 
 let db = null;
-let dbPath = '';
 
 /**
  * Initialize the database connection.
- * Loads the .sqlite file from disk into memory.
  */
-async function initDatabase(filePath) {
-  dbPath = filePath;
-  const SQL = await initSqlJs();
-  
-  if (fs.existsSync(dbPath)) {
-    const fileBuffer = fs.readFileSync(dbPath);
-    db = new SQL.Database(fileBuffer);
-    console.log(`🗄️  Database loaded from: ${dbPath}`);
-  } else {
-    console.error(`❌ Database file not found: ${dbPath}`);
-    console.error('   Run "npm run init-db" first to create the database.');
-    process.exit(1);
-  }
-  
-  db.run('PRAGMA foreign_keys = ON');
-  return db;
-}
-
-/**
- * Convert sql.js result to array of objects.
- * Input:  [{ columns: ['id','name'], values: [['u1','Sarah'], ['u2','Jean']] }]
- * Output: [{ id: 'u1', name: 'Sarah' }, { id: 'u2', name: 'Jean' }]
- */
-function resultToObjects(result) {
-  if (!result || result.length === 0) return [];
-  
-  const { columns, values } = result[0];
-  return values.map(row => {
-    const obj = {};
-    columns.forEach((col, i) => {
-      obj[col] = row[i];
-    });
-    return obj;
-  });
+function initDatabase(filePath) {
+  db = new Database(filePath);
+  db.pragma('journal_mode = WAL');
+  db.pragma('foreign_keys = ON');
+  console.log(`🗄️  Database loaded from: ${filePath}`);
+  return Promise.resolve(db);
 }
 
 /**
  * Run a SELECT query and return array of objects.
- * Usage: getAll('SELECT * FROM users WHERE role = ?', ['ARTISAN'])
  */
 function getAll(sql, params = []) {
-  const result = db.exec(sql, params);
-  return resultToObjects(result);
+  return db.prepare(sql).all(params);
 }
 
 /**
  * Run a SELECT query and return first row as object (or null).
- * Usage: getOne('SELECT * FROM users WHERE id = ?', ['u1'])
  */
 function getOne(sql, params = []) {
-  const rows = getAll(sql, params);
-  return rows.length > 0 ? rows[0] : null;
+  return db.prepare(sql).get(params) || null;
 }
 
 /**
  * Run an INSERT/UPDATE/DELETE statement.
  * Returns: { changes: number }
- * Usage: run('UPDATE users SET name = ? WHERE id = ?', ['New Name', 'u1'])
  */
 function run(sql, params = []) {
-  db.run(sql, params);
-  const changes = db.getRowsModified();
-  return { changes };
+  const result = db.prepare(sql).run(params);
+  return { changes: result.changes };
 }
 
 /**
- * Save the current in-memory database to disk.
- * Call this after INSERT/UPDATE/DELETE operations to persist data.
+ * No-op — better-sqlite3 writes to disk synchronously on every run().
+ * Kept for backward compatibility with route files that call req.db.save().
  */
 function save() {
-  if (!db || !dbPath) return;
-  const data = db.export();
-  const buffer = Buffer.from(data);
-  fs.writeFileSync(dbPath, buffer);
+  // no-op
 }
 
 /**
  * Close the database connection.
- * NOTE: We do NOT save() here intentionally — every write operation
- * calls save() explicitly. Saving on close risks overwriting the disk
- * file with a stale in-memory state if the DB was modified externally
- * (e.g. by a migration script) while the app was running.
  */
 function close() {
   if (db) {

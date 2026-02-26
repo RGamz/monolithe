@@ -6,14 +6,12 @@
   "scripts": {
     "start": "node server.js",
     "dev": "node --watch server.js",
-    "init-db": "node db/init.js",
-    "migrate-photos": "node db/migrate-photos.js",
-    "migrate-s3-columns": "node db/migrate-s3-columns.js",
-    "migrate-bcrypt": "node db/migrate-bcrypt.js"
+    "init-db": "node db/init.js"
   },
   "dependencies": {
     "express": "^4.21.0",
-    "sql.js": "^1.11.0",
+    "better-sqlite3": "^9.4.3",
+    "bcrypt": "^5.1.1",
     "dotenv": "^16.4.5",
     "cors": "^2.8.5",
     "multer": "^2.0.2",

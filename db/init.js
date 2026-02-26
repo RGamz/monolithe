@@ -79,6 +79,8 @@ async function initialize() {
       file_name TEXT DEFAULT 'facture.pdf',
       file_url TEXT,
       file_key TEXT,
+      moderation_status TEXT NOT NULL DEFAULT 'en_attente',
+      moderation_note TEXT,
       FOREIGN KEY (project_id) REFERENCES projects(id),
       FOREIGN KEY (artisan_id) REFERENCES users(id)
     );
@@ -107,6 +109,8 @@ async function initialize() {
       expiry_date TEXT,
       is_not_concerned INTEGER NOT NULL DEFAULT 0,
       status TEXT NOT NULL DEFAULT 'valid' CHECK(status IN ('valid', 'expired', 'missing')),
+      moderation_status TEXT NOT NULL DEFAULT 'en_attente',
+      moderation_note TEXT,
       FOREIGN KEY (artisan_id) REFERENCES users(id),
       UNIQUE(artisan_id, document_type)
     );
@@ -120,6 +124,8 @@ async function initialize() {
       file_url TEXT,
       file_key TEXT,
       uploaded_at TEXT NOT NULL DEFAULT (datetime('now')),
+      moderation_status TEXT NOT NULL DEFAULT 'en_attente',
+      moderation_note TEXT,
       FOREIGN KEY (project_id) REFERENCES projects(id),
       FOREIGN KEY (uploaded_by) REFERENCES users(id)
     );

@@ -6,7 +6,8 @@
   "scripts": {
     "start": "node server.js",
     "dev": "node --watch server.js",
-    "init-db": "node db/init.js"
+    "init-db": "node db/init.js",
+    "migrate-moderation": "node db/migrate-moderation.js"
   },
   "dependencies": {
     "express": "^4.21.0",

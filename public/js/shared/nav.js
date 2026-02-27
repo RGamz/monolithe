@@ -62,7 +62,7 @@
     <header class="header${isPro ? ' header-sticky' : ''}">
         <div class="container header-inner">
             <div class="logo">
-                <img src="/images/logo.png" alt="Monolithe logo" />
+                <img src="/assets/images/logo.png" alt="Monolithe logo" />
                 <a href="${logoHref}">Monolithe</a>
                 ${badge}
             </div>

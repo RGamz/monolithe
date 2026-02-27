@@ -46,8 +46,7 @@ function renderModeration() {
     <div class="space-y-6">
       <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
         <div>
-          <h2 style="font-size: 1.25rem; font-weight: 700; color: var(--slate-800); display: flex; align-items: center; gap: 8px;">
-            ${MOD_ICONS.inbox}
+          <h2 style="font-size: 1.25rem; font-weight: 700; color: var(--slate-800);">
             Modération des documents
           </h2>
           <p class="text-sm" style="color: var(--slate-500); margin-top: 4px;">

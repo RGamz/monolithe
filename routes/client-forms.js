@@ -162,6 +162,21 @@ router.post('/devis', async (req, res) => {
   res.json({ success: true, id });
 });
 
+// GET /api/forms/unread-count — count unread submissions for badge
+router.get('/unread-count', (req, res) => {
+  const contacts = req.db.getOne('SELECT COUNT(*) as n FROM contact_submissions WHERE read_at IS NULL');
+  const devis    = req.db.getOne('SELECT COUNT(*) as n FROM devis_submissions WHERE read_at IS NULL');
+  res.json({ count: (contacts.n || 0) + (devis.n || 0) });
+});
+
+// POST /api/forms/submissions/:type/:id/read — mark a submission as read
+router.post('/submissions/:type/:id/read', (req, res) => {
+  const { type, id } = req.params;
+  const table = type === 'contact' ? 'contact_submissions' : 'devis_submissions';
+  req.db.run(`UPDATE ${table} SET read_at = datetime('now') WHERE id = ? AND read_at IS NULL`, [id]);
+  res.json({ success: true });
+});
+
 // GET /api/forms/submissions — Admin only
 router.get('/submissions', (req, res) => {
   const contacts = req.db.getAll(

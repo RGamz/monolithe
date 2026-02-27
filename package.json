@@ -9,6 +9,7 @@
     "init-db": "node db/init.js",
     "migrate-moderation": "node db/migrate-moderation.js",
     "migrate-phone": "node db/migrate-phone.js",
+    "migrate-submissions-read": "node db/migrate-submissions-read.js",
     "import-artisans": "node db/import-artisans.js",
     "geocode-missing": "node db/geocode-missing.js"
   },

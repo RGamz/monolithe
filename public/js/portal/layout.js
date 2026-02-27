@@ -116,7 +116,7 @@ function buildSidebar(user, currentPage) {
   }
   
   if (user.role === 'ADMIN') {
-    navItems += navItem('client-submissions', ICONS.inbox, 'Demandes clients', currentPage);
+    navItems += navItemWithBadge('client-submissions', ICONS.inbox, 'Demandes clients', currentPage);
     navItems += navItemWithBadge('moderation', ICONS.inbox, 'Modération', currentPage);
     navItems += navItem('directory', ICONS.users, 'Annuaire des artisans', currentPage);
     navItems += navItem('projects', ICONS.folder, 'Suivi des projets', currentPage);
@@ -170,11 +170,12 @@ function navItem(page, icon, label, currentPage) {
 function navItemWithBadge(page, icon, label, currentPage) {
   const isActive = page === currentPage ? 'active' : '';
   const href = `/pro/portail/${page}`;
+  const badgeId = page + '-badge';
 
   return `
     <a href="${href}" class="nav-item ${isActive}" style="justify-content: space-between;">
       <span style="display: flex; align-items: center; gap: 10px;">${icon}${label}</span>
-      <span id="mod-badge" style="display:none; background: #ef4444; color: white; font-size: 0.7rem; font-weight: 700; padding: 1px 7px; border-radius: 12px; min-width: 20px; text-align: center;"></span>
+      <span id="${badgeId}" style="display:none; background: #ef4444; color: white; font-size: 0.7rem; font-weight: 700; padding: 1px 7px; border-radius: 12px; min-width: 20px; text-align: center;"></span>
     </a>
   `;
 }
@@ -185,14 +186,23 @@ async function loadModerationBadge() {
     const res = await fetch('/api/moderation/pending');
     const data = await res.json();
     const total = data.reduce((n, a) => n + a.items.length, 0);
-    const badge = document.getElementById('mod-badge');
+    const badge = document.getElementById('moderation-badge');
     if (badge) {
-      if (total > 0) {
-        badge.textContent = total;
-        badge.style.display = 'inline-block';
-      } else {
-        badge.style.display = 'none';
-      }
+      badge.textContent = total;
+      badge.style.display = total > 0 ? 'inline-block' : 'none';
+    }
+  } catch {}
+}
+
+// Load unread client submissions counter for sidebar badge
+async function loadSubmissionsBadge() {
+  try {
+    const res = await fetch('/api/forms/unread-count');
+    const data = await res.json();
+    const badge = document.getElementById('client-submissions-badge');
+    if (badge) {
+      badge.textContent = data.count;
+      badge.style.display = data.count > 0 ? 'inline-block' : 'none';
     }
   } catch {}
 }
@@ -286,9 +296,10 @@ function initLayout(pageName) {
     });
   }
 
-  // Load moderation badge for admin
+  // Load badges for admin
   if (user.role === 'ADMIN') {
     loadModerationBadge();
+    loadSubmissionsBadge();
   }
   
   return user;

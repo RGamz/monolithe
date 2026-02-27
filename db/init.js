@@ -141,10 +141,9 @@ async function initialize() {
       company TEXT,
       request_type TEXT,
       message TEXT,
-      created_at TEXT NOT NULL DEFAULT (datetime('now'))
+      created_at TEXT NOT NULL DEFAULT (datetime('now')),
+      read_at TEXT
     );
-
-    CREATE TABLE IF NOT EXISTS devis_submissions (
       id TEXT PRIMARY KEY,
       name TEXT NOT NULL,
       email TEXT NOT NULL,
@@ -162,7 +161,8 @@ async function initialize() {
       estimate_low INTEGER,
       estimate_high INTEGER,
       estimate_average INTEGER,
-      created_at TEXT NOT NULL DEFAULT (datetime('now'))
+      created_at TEXT NOT NULL DEFAULT (datetime('now')),
+      read_at TEXT
     );
 
     CREATE TABLE IF NOT EXISTS password_reset_tokens (

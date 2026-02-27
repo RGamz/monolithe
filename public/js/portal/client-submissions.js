@@ -182,6 +182,13 @@ function viewContact(id) {
   const c = contacts.find(x => x.id === id);
   if (!c) return;
 
+  // Mark as read if not already
+  if (!c.read_at) {
+    c.read_at = new Date().toISOString();
+    fetch('/api/forms/submissions/contact/' + id + '/read', { method: 'POST' }).catch(() => {});
+    updateSubmissionsBadge();
+  }
+
   currentDetailItem = { type: 'contact', id };
   document.getElementById('detail-title').textContent = 'Contact — ' + c.name;
 
@@ -204,6 +211,13 @@ function viewContact(id) {
 function viewDevis(id) {
   const d = devis.find(x => x.id === id);
   if (!d) return;
+
+  // Mark as read if not already
+  if (!d.read_at) {
+    d.read_at = new Date().toISOString();
+    fetch('/api/forms/submissions/devis/' + id + '/read', { method: 'POST' }).catch(() => {});
+    updateSubmissionsBadge();
+  }
 
   currentDetailItem = { type: 'devis', id };
   document.getElementById('detail-title').textContent = 'Devis — ' + d.name;
@@ -294,4 +308,13 @@ function esc(str) {
   const div = document.createElement('div');
   div.textContent = str;
   return div.innerHTML;
+}
+
+function updateSubmissionsBadge() {
+  const unread = contacts.filter(c => !c.read_at).length + devis.filter(d => !d.read_at).length;
+  const badge = document.getElementById('client-submissions-badge');
+  if (badge) {
+    badge.textContent = unread;
+    badge.style.display = unread > 0 ? 'inline-block' : 'none';
+  }
 }

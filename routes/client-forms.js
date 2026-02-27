@@ -4,37 +4,33 @@
  * Replaces Netlify Forms — saves submissions to SQLite.
  * Sends email notifications via OVH SMTP (Nodemailer).
  *
- * POST /api/forms/contact     - Contact form (client or pro)
- * POST /api/forms/devis       - Devis questionnaire submission
- * GET  /api/forms/submissions  - Admin: list all submissions
+ * POST /api/forms/contact               - Contact form (client or pro)
+ * POST /api/forms/devis                 - Devis questionnaire submission
+ * GET  /api/forms/submissions           - Admin: list all submissions
+ * GET  /api/forms/unread-count          - Count unread submissions (badge)
+ * POST /api/forms/submissions/:type/:id/read  - Mark a submission as read
+ * DELETE /api/forms/submissions/:type/:id     - Delete a submission
  */
 
 const express = require('express');
 const router = express.Router();
-const nodemailer = require('nodemailer');
+const { randomUUID } = require('crypto');
+const { contactTransporter } = require('../lib/mailer');
+
+// Allowlist for submission table routing — prevents any dynamic table injection
+const SUBMISSION_TABLES = {
+  contact: 'contact_submissions',
+  devis:   'devis_submissions',
+};
 
 // ---------------------------------------------------------------
-// Mailer setup (OVH SMTP)
+// Email helpers
 // ---------------------------------------------------------------
-const transporter = nodemailer.createTransport({
-  host: process.env.SMTP_HOST,
-  port: parseInt(process.env.SMTP_PORT) || 465,
-  secure: true, // SSL on port 465
-  auth: {
-    user: process.env.SMTP_USER,
-    pass: process.env.SMTP_PASS,
-  },
-});
 
-/**
- * Send notification to contact@monolithe.pro + confirmation to submitter.
- * Fires async — form response is not blocked by email sending.
- */
 async function sendContactEmails({ name, email, phone, subject, company, requestType, message, source }) {
   const sourceLabel = source === 'pro' ? 'Espace Pro' : 'Site client';
 
-  // 1. Notification to contact@monolithe.pro
-  await transporter.sendMail({
+  await contactTransporter.sendMail({
     from: `"Monolithe" <${process.env.SMTP_USER}>`,
     to: process.env.NOTIFY_EMAIL,
     subject: `[Nouveau contact] ${subject || 'Sans objet'} — ${sourceLabel}`,
@@ -53,8 +49,7 @@ async function sendContactEmails({ name, email, phone, subject, company, request
     `,
   });
 
-  // 2. Confirmation to the submitter
-  await transporter.sendMail({
+  await contactTransporter.sendMail({
     from: `"Monolithe" <${process.env.SMTP_USER}>`,
     to: email,
     subject: 'Nous avons bien reçu votre message — Monolithe',
@@ -67,8 +62,7 @@ async function sendContactEmails({ name, email, phone, subject, company, request
 }
 
 async function sendDevisEmails({ name, email, phone, projectCategory, projectDescription, zipCode, estimateAverage }) {
-  // 1. Notification to contact@monolithe.pro
-  await transporter.sendMail({
+  await contactTransporter.sendMail({
     from: `"Monolithe" <${process.env.SMTP_USER}>`,
     to: process.env.NOTIFY_EMAIL,
     subject: `[Nouvelle demande de devis] ${projectCategory || 'Projet'} — ${name}`,
@@ -86,8 +80,7 @@ async function sendDevisEmails({ name, email, phone, projectCategory, projectDes
     `,
   });
 
-  // 2. Confirmation to the submitter
-  await transporter.sendMail({
+  await contactTransporter.sendMail({
     from: `"Monolithe" <${process.env.SMTP_USER}>`,
     to: email,
     subject: 'Votre demande de devis a été reçue — Monolithe',
@@ -99,9 +92,9 @@ async function sendDevisEmails({ name, email, phone, projectCategory, projectDes
   });
 }
 
-function generateId() {
-  return 'sub_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6);
-}
+// ---------------------------------------------------------------
+// Routes
+// ---------------------------------------------------------------
 
 // POST /api/forms/contact
 router.post('/contact', async (req, res) => {
@@ -111,13 +104,12 @@ router.post('/contact', async (req, res) => {
     return res.status(400).json({ error: 'Nom et email requis.' });
   }
 
-  const id = generateId();
+  const id = randomUUID();
   req.db.run(
     `INSERT INTO contact_submissions (id, source, name, email, phone, subject, company, request_type, message)
      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     [id, source || 'client', name, email, phone || null, subject || null, company || null, requestType || null, message || null]
   );
-  req.db.save();
 
   // Send emails async — don't block the response
   sendContactEmails({ name, email, phone, subject, company, requestType, message, source })
@@ -133,16 +125,16 @@ router.post('/devis', async (req, res) => {
     projectCategory, propertyType, propertyAge,
     renovationType, area, currentCondition,
     desiredFinish, timeline, zipCode,
-    estimateLow, estimateHigh, estimateAverage
+    estimateLow, estimateHigh, estimateAverage,
   } = req.body;
 
   if (!name || !email) {
     return res.status(400).json({ error: 'Nom et email requis.' });
   }
 
-  const id = generateId();
+  const id = randomUUID();
   req.db.run(
-    `INSERT INTO devis_submissions 
+    `INSERT INTO devis_submissions
      (id, name, email, phone, project_description, project_category, property_type, property_age,
       renovation_type, area, current_condition, desired_finish, timeline, zip_code,
       estimate_low, estimate_high, estimate_average)
@@ -153,7 +145,6 @@ router.post('/devis', async (req, res) => {
      desiredFinish || null, timeline || null, zipCode || null,
      estimateLow || null, estimateHigh || null, estimateAverage || null]
   );
-  req.db.save();
 
   // Send emails async — don't block the response
   sendDevisEmails({ name, email, phone, projectDescription, projectCategory, zipCode, estimateAverage })
@@ -172,31 +163,27 @@ router.get('/unread-count', (req, res) => {
 // POST /api/forms/submissions/:type/:id/read — mark a submission as read
 router.post('/submissions/:type/:id/read', (req, res) => {
   const { type, id } = req.params;
-  const table = type === 'contact' ? 'contact_submissions' : 'devis_submissions';
+  const table = SUBMISSION_TABLES[type];
+  if (!table) return res.status(400).json({ error: 'Type invalide.' });
+
   req.db.run(`UPDATE ${table} SET read_at = datetime('now') WHERE id = ? AND read_at IS NULL`, [id]);
   res.json({ success: true });
 });
 
 // GET /api/forms/submissions — Admin only
 router.get('/submissions', (req, res) => {
-  const contacts = req.db.getAll(
-    'SELECT * FROM contact_submissions ORDER BY created_at DESC'
-  );
-  const devis = req.db.getAll(
-    'SELECT * FROM devis_submissions ORDER BY created_at DESC'
-  );
-
+  const contacts = req.db.getAll('SELECT * FROM contact_submissions ORDER BY created_at DESC');
+  const devis    = req.db.getAll('SELECT * FROM devis_submissions ORDER BY created_at DESC');
   res.json({ contacts, devis });
 });
 
 // DELETE /api/forms/submissions/:type/:id
 router.delete('/submissions/:type/:id', (req, res) => {
   const { type, id } = req.params;
-  const table = type === 'contact' ? 'contact_submissions' : 'devis_submissions';
-  
+  const table = SUBMISSION_TABLES[type];
+  if (!table) return res.status(400).json({ error: 'Type invalide.' });
+
   req.db.run(`DELETE FROM ${table} WHERE id = ?`, [id]);
-  req.db.save();
-  
   res.json({ success: true });
 });
 

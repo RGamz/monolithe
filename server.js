@@ -6,13 +6,21 @@
  * 2. Pro landing page (/pro, /pro/about-us, /pro/contact-us)
  * 3. Portal app (/pro/portail/*)
  * 4. API routes (/api/*)
+ *
+ * Auth model:
+ *   POST /api/auth/login  → issues an HttpOnly session cookie
+ *   POST /api/auth/logout → clears the cookie
+ *   All /api/* routes (except login, forgot, reset-password) require a valid cookie.
+ *   Admin-only routes additionally require role === 'ADMIN'.
  */
 
 const express = require('express');
 const path = require('path');
+const cookieParser = require('cookie-parser');
 require('dotenv').config();
 
 const dbHelper = require('./db/helper');
+const { requireAuth, requireAdmin } = require('./lib/auth');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -22,12 +30,14 @@ const PORT = process.env.PORT || 3000;
 // ------------------------------------------------------------------
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser());
 
 // Static assets
-app.use('/css', express.static(path.join(__dirname, 'public', 'css')));
-app.use('/js', express.static(path.join(__dirname, 'public', 'js')));
-app.use('/assets', express.static(path.join(__dirname, 'public', 'assets')));
-app.use('/images', express.static(path.join(__dirname, 'public', 'assets', 'images')));
+// /assets serves everything under public/assets (including /assets/images/*)
+// The separate /images alias has been removed — use /assets/images/ instead.
+app.use('/css',       express.static(path.join(__dirname, 'public', 'css')));
+app.use('/js',        express.static(path.join(__dirname, 'public', 'js')));
+app.use('/assets',    express.static(path.join(__dirname, 'public', 'assets')));
 app.use('/templates', express.static(path.join(__dirname, 'public', 'templates')));
 
 // Make db helper accessible to all routes
@@ -39,17 +49,28 @@ app.use((req, res, next) => {
 // ------------------------------------------------------------------
 // API ROUTES
 // ------------------------------------------------------------------
-app.use('/api/auth', require('./routes/auth'));
-app.use('/api/moderation', require('./routes/moderation'));
-app.use('/api/projects', require('./routes/projects'));
-app.use('/api/invoices', require('./routes/invoices'));
-app.use('/api/users', require('./routes/users'));
-app.use('/api/alerts', require('./routes/alerts'));
-app.use('/api/documents', require('./routes/documents'));
-app.use('/api/forms', require('./routes/client-forms'));
-app.use('/api/photos', require('./routes/photos'));
 
-// Serve uploaded photos
+// Public auth endpoints — no session required
+app.use('/api/auth', require('./routes/auth'));
+
+// Public form endpoints — no session required (client-facing contact/devis forms)
+app.use('/api/forms', require('./routes/client-forms'));
+
+// All remaining API routes require a valid session
+app.use('/api', requireAuth);
+
+// Artisan + Admin routes
+app.use('/api/projects',  require('./routes/projects'));
+app.use('/api/invoices',  require('./routes/invoices'));
+app.use('/api/documents', require('./routes/documents'));
+app.use('/api/photos',    require('./routes/photos'));
+app.use('/api/users',     require('./routes/users'));
+
+// Admin-only routes
+app.use('/api/alerts',     requireAdmin, require('./routes/alerts'));
+app.use('/api/moderation', requireAdmin, require('./routes/moderation'));
+
+// Serve uploaded photos (local fallback for non-S3 environments)
 app.use('/uploads/photos', express.static(path.join(__dirname, 'uploads', 'photos')));
 
 // ------------------------------------------------------------------
@@ -76,7 +97,7 @@ const portalPages = [
   'dashboard', 'invoices', 'directory', 'projects',
   'documents', 'onboarding', 'admin', 'artisan-profile',
   'reset-password', 'moderation',
-  'client-submissions'
+  'client-submissions',
 ];
 portalPages.forEach(page => {
   routeWithSlash(`/pro/portail/${page}`, 'portal', `${page}.html`);
@@ -85,17 +106,17 @@ portalPages.forEach(page => {
 // ------------------------------------------------------------------
 // PRO LANDING ROUTES (/pro, /pro/about-us, /pro/contact-us)
 // ------------------------------------------------------------------
-routeWithSlash('/pro', 'pro-landing', 'index.html');
-routeWithSlash('/pro/about-us', 'pro-landing', 'about-us.html');
+routeWithSlash('/pro',            'pro-landing', 'index.html');
+routeWithSlash('/pro/about-us',   'pro-landing', 'about-us.html');
 routeWithSlash('/pro/contact-us', 'pro-landing', 'contact-us.html');
 
 // ------------------------------------------------------------------
 // CLIENT ROUTES
 // ------------------------------------------------------------------
 app.get('/', servePage('client', 'index.html'));
-routeWithSlash('/about-us', 'client', 'about-us.html');
-routeWithSlash('/contact-us', 'client', 'contact-us.html');
-routeWithSlash('/tips-and-tricks', 'client', 'tips-and-tricks.html');
+routeWithSlash('/about-us',         'client', 'about-us.html');
+routeWithSlash('/contact-us',       'client', 'contact-us.html');
+routeWithSlash('/tips-and-tricks',  'client', 'tips-and-tricks.html');
 routeWithSlash('/mentions-legales', 'client', 'mentions-legales.html');
 
 // ------------------------------------------------------------------

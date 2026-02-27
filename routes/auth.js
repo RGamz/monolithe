@@ -1,7 +1,8 @@
 /**
  * Auth Routes (routes/auth.js)
  * ----------------------------
- * POST /api/auth/login          - Verify credentials, return user
+ * POST /api/auth/login          - Verify credentials, set session cookie
+ * POST /api/auth/logout         - Clear session cookie
  * POST /api/auth/forgot         - Generate reset token, send email
  * POST /api/auth/reset-password - Validate token, update password
  */
@@ -10,18 +11,8 @@ const express = require('express');
 const router = express.Router();
 const bcrypt = require('bcrypt');
 const crypto = require('crypto');
-const nodemailer = require('nodemailer');
-
-// Nodemailer transporter for noreply@monolithe.pro
-const transporter = nodemailer.createTransport({
-  host: 'ssl0.ovh.net',
-  port: 465,
-  secure: true,
-  auth: {
-    user: process.env.NOREPLY_EMAIL,
-    pass: process.env.NOREPLY_PASS,
-  },
-});
+const { noreplyTransporter } = require('../lib/mailer');
+const { issueToken, clearToken } = require('../lib/auth');
 
 const TOKEN_EXPIRY_MINUTES = 30;
 
@@ -50,7 +41,16 @@ router.post('/login', async (req, res) => {
   }
 
   const { password: _, ...safeUser } = user;
+
+  issueToken(res, user.id, user.role);
+
   res.json(safeUser);
+});
+
+// POST /api/auth/logout
+router.post('/logout', (req, res) => {
+  clearToken(res);
+  res.json({ success: true });
 });
 
 // POST /api/auth/forgot
@@ -82,7 +82,7 @@ router.post('/forgot', async (req, res) => {
   const resetUrl = `${process.env.APP_URL || 'https://monolithe.pro'}/pro/portail/reset-password?token=${token}`;
 
   try {
-    await transporter.sendMail({
+    await noreplyTransporter.sendMail({
       from: `"Monolithe" <${process.env.NOREPLY_EMAIL}>`,
       to: email,
       subject: 'Réinitialisation de votre mot de passe',
@@ -103,7 +103,7 @@ router.post('/forgot', async (req, res) => {
     });
   } catch (err) {
     console.error('Reset email error:', err);
-    return res.status(500).json({ error: 'Erreur lors de l\'envoi de l\'e-mail.' });
+    return res.status(500).json({ error: "Erreur lors de l'envoi de l'e-mail." });
   }
 
   res.json({ sent: true });

@@ -8,22 +8,9 @@
 
 const express = require('express');
 const router = express.Router();
-const multer = require('multer');
+const { randomUUID } = require('crypto');
+const { documentUpload } = require('../lib/upload');
 const storage = require('../lib/storage');
-
-// Use memory storage — file goes straight to S3, never touches disk
-const upload = multer({
-  storage: multer.memoryStorage(),
-  limits: { fileSize: 10 * 1024 * 1024 }, // 10MB
-  fileFilter: (req, file, cb) => {
-    const allowed = /pdf|jpg|jpeg|png/;
-    if (allowed.test(file.mimetype)) {
-      cb(null, true);
-    } else {
-      cb(new Error('Seuls les fichiers PDF, JPG et PNG sont autorisés.'));
-    }
-  },
-});
 
 // GET /api/invoices
 router.get('/', (req, res) => {
@@ -45,7 +32,7 @@ router.get('/', (req, res) => {
 });
 
 // POST /api/invoices
-router.post('/', upload.single('file'), async (req, res) => {
+router.post('/', documentUpload.single('file'), async (req, res) => {
   const { project_id, artisan_id, amount, date } = req.body;
 
   if (!project_id || !artisan_id || !amount) {
@@ -59,15 +46,13 @@ router.post('/', upload.single('file'), async (req, res) => {
   try {
     const { key, url } = await storage.upload(req.file.buffer, req.file.originalname, 'invoices');
 
-    const id = 'inv' + Date.now();
+    const id = randomUUID();
     const invoiceDate = date || new Date().toISOString().split('T')[0];
 
     req.db.run(`
       INSERT INTO invoices (id, project_id, artisan_id, amount, date, status, file_name, file_url, file_key, moderation_status)
       VALUES (?, ?, ?, ?, ?, 'En attente', ?, ?, ?, 'en_attente')
     `, [id, project_id, artisan_id, amount, invoiceDate, req.file.originalname, url, key]);
-
-    req.db.save();
 
     const created = req.db.getOne('SELECT * FROM invoices WHERE id = ?', [id]);
     res.json(created);
@@ -105,7 +90,6 @@ router.delete('/:id', async (req, res) => {
   }
 
   req.db.run('DELETE FROM invoices WHERE id = ?', [id]);
-  req.db.save();
 
   res.json({ success: true });
 });

@@ -9,6 +9,7 @@
 
 const express = require('express');
 const router = express.Router();
+const { randomUUID } = require('crypto');
 
 // GET /api/projects
 router.get('/', (req, res) => {
@@ -75,21 +76,19 @@ router.post('/', (req, res) => {
     return res.status(400).json({ error: 'Title and client_id are required' });
   }
 
-  const id = 'p' + Date.now();
+  const id = randomUUID();
 
   req.db.run(`
     INSERT INTO projects (id, title, client_id, status, start_date, description)
     VALUES (?, ?, ?, ?, ?, ?)
   `, [id, title, client_id, status || 'En attente', start_date || null, description || '']);
 
-  // Link artisans
   if (artisan_ids && artisan_ids.length > 0) {
     for (const artisanId of artisan_ids) {
       req.db.run('INSERT INTO project_artisans (project_id, artisan_id) VALUES (?, ?)', [id, artisanId]);
     }
   }
 
-  req.db.save();
   res.json({ id, title, client_id, status: status || 'En attente' });
 });
 
@@ -119,8 +118,6 @@ router.put('/:id', (req, res) => {
       req.db.run('INSERT INTO project_artisans (project_id, artisan_id) VALUES (?, ?)', [id, artisanId]);
     }
   }
-
-  req.db.save();
 
   const updated = req.db.getOne(`
     SELECT p.*, u.name AS client_name, u.company_name AS client_company
@@ -153,7 +150,6 @@ router.delete('/:id', (req, res) => {
   req.db.run('DELETE FROM project_artisans WHERE project_id = ?', [id]);
   req.db.run('DELETE FROM invoices WHERE project_id = ?', [id]);
   req.db.run('DELETE FROM projects WHERE id = ?', [id]);
-  req.db.save();
 
   res.json({ success: true });
 });

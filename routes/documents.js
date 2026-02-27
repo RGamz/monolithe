@@ -1,69 +1,91 @@
 /**
  * Documents Routes (routes/documents.js)
  * ----------------------------------------
- * GET    /api/documents/:artisanId       - Get all documents for an artisan
- * POST   /api/documents                  - Upload/update a document
- * DELETE /api/documents/:id              - Delete a document
- * POST   /api/documents/not-concerned    - Mark document as not concerned
+ * GET    /api/documents/download/:filename  - Redirect to S3 URL for a document
+ * GET    /api/documents/templates/:type     - Download a template PDF
+ * GET    /api/documents/:artisanId          - Get all documents for an artisan
+ * POST   /api/documents                     - Upload/update a document
+ * POST   /api/documents/not-concerned       - Mark document as not concerned
+ * DELETE /api/documents/:id                 - Delete a document
+ *
+ * NOTE: The specific GET routes (/download/*, /templates/*) MUST be declared before
+ * the dynamic /:artisanId route, otherwise Express matches them as artisan IDs.
  */
 
 const express = require('express');
 const router = express.Router();
-const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
+const { randomUUID } = require('crypto');
+const { documentUpload } = require('../lib/upload');
 const s3 = require('../lib/storage');
 
 // Document types with default expiry in months
 const DOCUMENT_TYPES = {
-  kbis: { label: 'KBIS', expiryMonths: 3, downloadable: false },
-  assurance_decennale: { label: 'Assurance décennale', expiryMonths: 12, downloadable: false },
-  attestation_vigilance_urssaf: { label: 'Attestation de vigilance URSSAF', expiryMonths: 6, downloadable: false },
-  liste_salaries_etrangers: { label: 'Liste des salariés étrangers', expiryMonths: 12, downloadable: true },
-  declaration_honneur: { label: 'Déclaration sur l\'honneur', expiryMonths: 12, downloadable: true }
+  kbis:                        { label: 'KBIS',                               expiryMonths: 3,  downloadable: false },
+  assurance_decennale:         { label: 'Assurance décennale',                expiryMonths: 12, downloadable: false },
+  attestation_vigilance_urssaf:{ label: 'Attestation de vigilance URSSAF',    expiryMonths: 6,  downloadable: false },
+  liste_salaries_etrangers:    { label: 'Liste des salariés étrangers',        expiryMonths: 12, downloadable: true  },
+  declaration_honneur:         { label: "Déclaration sur l'honneur",           expiryMonths: 12, downloadable: true  },
 };
 
-// Use memory storage — files go straight to S3
-const upload = multer({
-  storage: multer.memoryStorage(),
-  limits: { fileSize: 10 * 1024 * 1024 }, // 10MB limit
-  fileFilter: (req, file, cb) => {
-    const allowedTypes = /pdf|jpg|jpeg|png/;
-    const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
-    const mimetype = allowedTypes.test(file.mimetype);
-
-    if (extname && mimetype) {
-      cb(null, true);
-    } else {
-      cb(new Error('Seuls les fichiers PDF, JPG, JPEG et PNG sont autorisés.'));
-    }
-  }
-});
-
-// Calculate expiry date based on document type
 function calculateExpiryDate(documentType) {
   const docInfo = DOCUMENT_TYPES[documentType];
   if (!docInfo) return null;
-
-  const uploadDate = new Date();
-  uploadDate.setMonth(uploadDate.getMonth() + docInfo.expiryMonths);
-  return uploadDate.toISOString().split('T')[0]; // YYYY-MM-DD format
+  const date = new Date();
+  date.setMonth(date.getMonth() + docInfo.expiryMonths);
+  return date.toISOString().split('T')[0];
 }
 
-// Check document status based on expiry date
 function checkDocumentStatus(expiryDate) {
   if (!expiryDate) return 'valid';
-
-  const today = new Date();
-  const expiry = new Date(expiryDate);
-
-  if (expiry < today) {
-    return 'expired';
-  }
-  return 'valid';
+  return new Date(expiryDate) < new Date() ? 'expired' : 'valid';
 }
 
-// GET /api/documents/:artisanId - Get all documents for an artisan
+// ---------------------------------------------------------------
+// GET /api/documents/download/:filename
+// MUST be before /:artisanId to avoid Express matching "download" as an artisan ID
+// ---------------------------------------------------------------
+router.get('/download/:filename', (req, res) => {
+  const { filename } = req.params;
+
+  const doc = req.db.getOne('SELECT file_url FROM artisan_documents WHERE file_name = ?', [filename]);
+
+  if (!doc || !doc.file_url) {
+    return res.status(404).json({ error: 'Fichier non trouvé.' });
+  }
+
+  res.redirect(doc.file_url);
+});
+
+// ---------------------------------------------------------------
+// GET /api/documents/templates/:type
+// MUST be before /:artisanId for the same reason
+// ---------------------------------------------------------------
+router.get('/templates/:type', (req, res) => {
+  const { type } = req.params;
+
+  const templates = {
+    liste_salaries_etrangers: 'template-liste-salaries-etrangers.pdf',
+    declaration_honneur:      'template-declaration-honneur.pdf',
+  };
+
+  if (!templates[type]) {
+    return res.status(404).json({ error: 'Template non trouvé.' });
+  }
+
+  const templatePath = path.join(__dirname, '..', 'public', 'templates', templates[type]);
+
+  if (!fs.existsSync(templatePath)) {
+    return res.status(404).json({ error: 'Fichier template non trouvé.' });
+  }
+
+  res.download(templatePath);
+});
+
+// ---------------------------------------------------------------
+// GET /api/documents/:artisanId
+// ---------------------------------------------------------------
 router.get('/:artisanId', (req, res) => {
   const { artisanId } = req.params;
 
@@ -75,7 +97,7 @@ router.get('/:artisanId', (req, res) => {
     ORDER BY document_type
   `, [artisanId]);
 
-  // Add metadata for each document type
+  // Merge with full type metadata so the client always sees all expected types
   const allDocuments = Object.keys(DOCUMENT_TYPES).map(type => {
     const existing = documents.find(d => d.document_type === type);
     return {
@@ -84,15 +106,17 @@ router.get('/:artisanId', (req, res) => {
       label: DOCUMENT_TYPES[type].label,
       downloadable: DOCUMENT_TYPES[type].downloadable,
       expiryMonths: DOCUMENT_TYPES[type].expiryMonths,
-      status: existing ? existing.status : 'missing'
+      status: existing ? existing.status : 'missing',
     };
   });
 
   res.json(allDocuments);
 });
 
-// POST /api/documents - Upload/update a document
-router.post('/', upload.single('file'), async (req, res) => {
+// ---------------------------------------------------------------
+// POST /api/documents — Upload/update a document
+// ---------------------------------------------------------------
+router.post('/', documentUpload.single('file'), async (req, res) => {
   const { artisan_id, document_type, custom_expiry_date } = req.body;
 
   if (!artisan_id || !document_type) {
@@ -108,28 +132,23 @@ router.post('/', upload.single('file'), async (req, res) => {
   }
 
   try {
-    // Upload to S3
     const { key, url } = await s3.upload(req.file.buffer, req.file.originalname, 'documents');
 
-    // Calculate expiry date
     const expiryDate = custom_expiry_date || calculateExpiryDate(document_type);
     const status = checkDocumentStatus(expiryDate);
 
-    // Check if document already exists
     const existing = req.db.getOne(
       'SELECT id, file_key FROM artisan_documents WHERE artisan_id = ? AND document_type = ?',
       [artisan_id, document_type]
     );
 
     if (existing) {
-      // Delete old file from S3 if it exists
       if (existing.file_key) {
         await s3.remove(existing.file_key).catch(err =>
           console.error('S3 delete old doc error:', err)
         );
       }
 
-      // Update existing document
       req.db.run(`
         UPDATE artisan_documents
         SET file_name = ?, file_url = ?, file_key = ?, upload_date = datetime('now'),
@@ -138,13 +157,11 @@ router.post('/', upload.single('file'), async (req, res) => {
         WHERE id = ?
       `, [req.file.originalname, url, key, expiryDate, status, existing.id]);
 
-      req.db.save();
-
       const updated = req.db.getOne('SELECT * FROM artisan_documents WHERE id = ?', [existing.id]);
       return res.json(updated);
+
     } else {
-      // Insert new document
-      const id = 'doc' + Date.now();
+      const id = randomUUID();
 
       req.db.run(`
         INSERT INTO artisan_documents
@@ -152,18 +169,19 @@ router.post('/', upload.single('file'), async (req, res) => {
         VALUES (?, ?, ?, ?, ?, ?, ?, ?)
       `, [id, artisan_id, document_type, req.file.originalname, url, key, expiryDate, status]);
 
-      req.db.save();
-
       const created = req.db.getOne('SELECT * FROM artisan_documents WHERE id = ?', [id]);
       return res.status(201).json(created);
     }
+
   } catch (err) {
     console.error('Document upload error:', err);
     res.status(500).json({ error: "Erreur lors de l'upload du fichier." });
   }
 });
 
-// POST /api/documents/not-concerned - Mark document as not concerned
+// ---------------------------------------------------------------
+// POST /api/documents/not-concerned — Mark document as not concerned
+// ---------------------------------------------------------------
 router.post('/not-concerned', (req, res) => {
   const { artisan_id, document_type, is_not_concerned } = req.body;
 
@@ -175,30 +193,25 @@ router.post('/not-concerned', (req, res) => {
     return res.status(400).json({ error: 'Type de document invalide.' });
   }
 
-  // Check if document exists
   const existing = req.db.getOne(
     'SELECT id FROM artisan_documents WHERE artisan_id = ? AND document_type = ?',
     [artisan_id, document_type]
   );
 
   if (existing) {
-    // Update existing
     req.db.run(`
       UPDATE artisan_documents
       SET is_not_concerned = ?, status = ?
       WHERE id = ?
     `, [is_not_concerned ? 1 : 0, is_not_concerned ? 'valid' : 'missing', existing.id]);
   } else {
-    // Insert new record
-    const id = 'doc' + Date.now();
+    const id = randomUUID();
     req.db.run(`
       INSERT INTO artisan_documents
         (id, artisan_id, document_type, is_not_concerned, status)
       VALUES (?, ?, ?, ?, ?)
     `, [id, artisan_id, document_type, is_not_concerned ? 1 : 0, is_not_concerned ? 'valid' : 'missing']);
   }
-
-  req.db.save();
 
   const updated = req.db.getOne(
     'SELECT * FROM artisan_documents WHERE artisan_id = ? AND document_type = ?',
@@ -208,7 +221,9 @@ router.post('/not-concerned', (req, res) => {
   res.json(updated);
 });
 
-// DELETE /api/documents/:id - Delete a document
+// ---------------------------------------------------------------
+// DELETE /api/documents/:id
+// ---------------------------------------------------------------
 router.delete('/:id', async (req, res) => {
   const { id } = req.params;
 
@@ -218,7 +233,6 @@ router.delete('/:id', async (req, res) => {
     return res.status(404).json({ error: 'Document non trouvé.' });
   }
 
-  // Delete file from S3 if it exists
   if (document.file_key) {
     await s3.remove(document.file_key).catch(err =>
       console.error('S3 delete error:', err)
@@ -226,45 +240,8 @@ router.delete('/:id', async (req, res) => {
   }
 
   req.db.run('DELETE FROM artisan_documents WHERE id = ?', [id]);
-  req.db.save();
 
   res.json({ success: true, message: 'Document supprimé.' });
-});
-
-// GET /api/documents/download/:filename - Download a document
-router.get('/download/:filename', (req, res) => {
-  const { filename } = req.params;
-
-  // Try to find by file_name and redirect to S3 URL
-  const doc = req.db.getOne('SELECT file_url FROM artisan_documents WHERE file_name = ?', [filename]);
-
-  if (!doc || !doc.file_url) {
-    return res.status(404).json({ error: 'Fichier non trouvé.' });
-  }
-
-  res.redirect(doc.file_url);
-});
-
-// GET /api/documents/templates/:type - Download template documents
-router.get('/templates/:type', (req, res) => {
-  const { type } = req.params;
-
-  const templates = {
-    liste_salaries_etrangers: 'template-liste-salaries-etrangers.pdf',
-    declaration_honneur: 'template-declaration-honneur.pdf'
-  };
-
-  if (!templates[type]) {
-    return res.status(404).json({ error: 'Template non trouvé.' });
-  }
-
-  const templatePath = path.join(__dirname, '..', 'public', 'templates', templates[type]);
-
-  if (!fs.existsSync(templatePath)) {
-    return res.status(404).json({ error: 'Fichier template non trouvé.' });
-  }
-
-  res.download(templatePath);
 });
 
 module.exports = router;

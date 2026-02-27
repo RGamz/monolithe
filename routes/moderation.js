@@ -8,17 +8,7 @@
 
 const express = require('express');
 const router = express.Router();
-const nodemailer = require('nodemailer');
-
-const transporter = nodemailer.createTransport({
-  host: 'ssl0.ovh.net',
-  port: 465,
-  secure: true,
-  auth: {
-    user: process.env.NOREPLY_EMAIL,
-    pass: process.env.NOREPLY_PASS,
-  },
-});
+const { noreplyTransporter } = require('../lib/mailer');
 
 const DOC_LABELS = {
   kbis: 'KBIS',
@@ -66,9 +56,7 @@ router.get('/pending', (req, res) => {
 
   // Group by artisan
   const byArtisan = {};
-  const allItems = [...invoices, ...documents, ...photos];
-
-  for (const item of allItems) {
+  for (const item of [...invoices, ...documents, ...photos]) {
     if (!byArtisan[item.artisan_id]) {
       byArtisan[item.artisan_id] = {
         artisan_id: item.artisan_id,
@@ -109,7 +97,6 @@ router.put('/item', (req, res) => {
 // POST /api/moderation/review — submit decisions and send email
 router.post('/review', async (req, res) => {
   const { decisions } = req.body;
-  // decisions: [{ id, item_type, decision: 'approuvé'|'rejeté', note }]
 
   if (!decisions || !decisions.length) {
     return res.status(400).json({ error: 'Aucune décision fournie.' });
@@ -141,7 +128,7 @@ router.post('/review', async (req, res) => {
       );
     }
 
-    // Fetch item details for email
+    // Fetch item details for email grouping
     let item = null;
     if (d.item_type === 'invoice') {
       item = req.db.getOne(`
@@ -190,10 +177,10 @@ router.post('/review', async (req, res) => {
 
   // Send one summary email per artisan
   const emailErrors = [];
-  for (const [, artisan] of Object.entries(byArtisan)) {
+  for (const artisan of Object.values(byArtisan)) {
     if (!artisan.email) continue;
     try {
-      await transporter.sendMail({
+      await noreplyTransporter.sendMail({
         from: `"Monolithe" <${process.env.NOREPLY_EMAIL}>`,
         to: artisan.email,
         subject: 'Résultat de la vérification de vos documents',

@@ -32,7 +32,6 @@ const allQuestions = [
     options: [
       { value: 'renovation', label: 'Rénovation' },
       { value: 'extension', label: 'Extension' },
-      { value: 'specific-room', label: 'Pièce spécifique' },
       { value: 'exterior', label: 'Travaux extérieurs' }
     ]
   },
@@ -74,17 +73,6 @@ const allQuestions = [
       { value: 'electrical', label: 'Électrique' },
       { value: 'plumbing', label: 'Plomberie' },
       { value: 'painting', label: 'Peinture' }
-    ]
-  },
-  {
-    id: 'renovationType',
-    title: 'Quelle pièce ?',
-    condition: (data) => data.projectCategory === 'specific-room',
-    options: [
-      { value: 'kitchen', label: 'Cuisine' },
-      { value: 'bathroom', label: 'Salle de bain' },
-      { value: 'bedroom', label: 'Chambre' },
-      { value: 'livingroom', label: 'Salon' }
     ]
   },
   {

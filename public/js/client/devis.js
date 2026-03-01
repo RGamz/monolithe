@@ -65,7 +65,7 @@ const allQuestions = [
   {
     id: 'renovationType',
     title: 'Type de rénovation ?',
-    condition: (data) => data.projectCategory === 'renovation',
+    condition: (data) => data.projectCategory === 'renovation' && data.propertyType !== 'office',
     options: [
       { value: 'complete', label: 'Complète' },
       { value: 'partial', label: 'Partielle' },
@@ -73,6 +73,14 @@ const allQuestions = [
       { value: 'electrical', label: 'Électrique' },
       { value: 'plumbing', label: 'Plomberie' },
       { value: 'painting', label: 'Peinture' }
+    ]
+  },
+  {
+    id: 'renovationType',
+    title: 'Type de rénovation ?',
+    condition: (data) => data.projectCategory === 'renovation' && data.propertyType === 'office',
+    options: [
+      { value: 'complete', label: 'Complète' }
     ]
   },
   {

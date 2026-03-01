@@ -190,8 +190,7 @@ function calculateEstimate() {
     if (areaNum > 200) basePrice += (areaNum - 200) * 400;
   }
 
-  if (formData.timeline === 'urgent') basePrice *= 1.2;
-  else if (formData.timeline === '1-3 mois') basePrice *= 1.1;
+  // Timeline has no impact on price - all options have 1.0 multiplier
 
   return {
     low: Math.round(basePrice * 0.85),

@@ -215,10 +215,9 @@ function calculateEstimate() {
 
     if (formData.area) {
       const areaNum = parseInt(formData.area);
-      if (areaNum > 150) basePrice *= 1.5;
-      else if (areaNum > 100) basePrice *= 1.3;
-      else if (areaNum > 50) basePrice *= 1.1;
-      if (areaNum > 200) basePrice += (areaNum - 200) * 400;
+      if (areaNum > 120) basePrice *= 0.95;
+      else if (areaNum >= 91) basePrice *= 1.0;
+      else basePrice *= 1.1;
     }
   }
 

@@ -69,10 +69,7 @@ const allQuestions = [
     options: [
       { value: 'complete', label: 'Complète' },
       { value: 'partial', label: 'Partielle' },
-      { value: 'insulation', label: 'Isolation & Énergie' },
-      { value: 'electrical', label: 'Électrique' },
-      { value: 'plumbing', label: 'Plomberie' },
-      { value: 'painting', label: 'Peinture' }
+      { value: 'bathroom', label: 'Salle de bain' }
     ]
   },
   {
@@ -184,7 +181,7 @@ function getFilteredQuestions() {
 
 function calculateEstimate() {
   const renovationBase = {
-    'complete': 60000, 'partial': 30000, 'kitchen': 18000, 'bathroom': 14000,
+    'complete': 60000, 'partial': 30000, 'kitchen': 18000, 'bathroom': 15000,
     'bedroom': 8000, 'livingroom': 12000,
     'insulation': 15000, 'electrical': 10000, 'plumbing': 12000, 'flooring': 8000,
     'extension': 45000

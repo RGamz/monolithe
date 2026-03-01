@@ -106,6 +106,25 @@ const allQuestions = [
   {
     id: 'area',
     title: 'Superficie concernée ?',
+    condition: (data) => data.renovationType !== 'facade' && data.renovationType !== 'roofing',
+    type: 'input',
+    inputType: 'number',
+    placeholder: 'en m²',
+    suffix: 'm²'
+  },
+  {
+    id: 'area',
+    title: 'Surface de la façade ?',
+    condition: (data) => data.renovationType === 'facade',
+    type: 'input',
+    inputType: 'number',
+    placeholder: 'en m²',
+    suffix: 'm²'
+  },
+  {
+    id: 'area',
+    title: 'Surface de la toiture ?',
+    condition: (data) => data.renovationType === 'roofing',
     type: 'input',
     inputType: 'number',
     placeholder: 'en m²',

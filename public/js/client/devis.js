@@ -134,11 +134,9 @@ const allQuestions = [
     id: 'currentCondition',
     title: 'État actuel ?',
     options: [
-      { value: 'excellent', label: 'Excellent' },
       { value: 'good', label: 'Bon' },
       { value: 'average', label: 'Moyen' },
-      { value: 'poor', label: 'Mauvais' },
-      { value: 'very-poor', label: 'Très mauvais' }
+      { value: 'poor', label: 'Mauvais' }
     ]
   },
   {
@@ -176,7 +174,7 @@ function calculateEstimate() {
     'painting': 5000, 'extension': 45000
   };
   const propertyMultiplier = { 'house': 1.5, 'flat': 1.0, 'office': 1.3, 'commercial': 1.8 };
-  const conditionMultiplier = { 'excellent': 0.7, 'good': 0.9, 'average': 1.0, 'poor': 1.3, 'very-poor': 1.6 };
+  const conditionMultiplier = { 'good': 0.9, 'average': 1.0, 'poor': 1.1 };
   const ageMultiplier = { '0-10': 0.9, '10-30': 1.0, '30+': 1.1 };
 
   let basePrice = renovationBase[formData.renovationType] || 30000;

@@ -38,10 +38,19 @@ const allQuestions = [
   {
     id: 'propertyType',
     title: 'Type de bien ?',
+    condition: (data) => data.projectCategory !== 'exterior',
     options: [
       { value: 'house', label: 'Maison' },
       { value: 'flat', label: 'Appartement' },
       { value: 'office', label: 'Bureau' }
+    ]
+  },
+  {
+    id: 'propertyType',
+    title: 'Type de bien ?',
+    condition: (data) => data.projectCategory === 'exterior',
+    options: [
+      { value: 'house', label: 'Maison' }
     ]
   },
   {

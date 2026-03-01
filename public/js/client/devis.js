@@ -120,7 +120,16 @@ const allQuestions = [
   {
     id: 'area',
     title: 'Superficie concernée ?',
-    condition: (data) => data.renovationType !== 'facade' && data.renovationType !== 'roofing',
+    condition: (data) => data.renovationType !== 'facade' && data.renovationType !== 'roofing' && data.renovationType !== 'extension',
+    type: 'input',
+    inputType: 'number',
+    placeholder: 'en m²',
+    suffix: 'm²'
+  },
+  {
+    id: 'area',
+    title: "Superficie de l'extension ?",
+    condition: (data) => data.renovationType === 'extension',
     type: 'input',
     inputType: 'number',
     placeholder: 'en m²',
@@ -501,6 +510,22 @@ function goBack() {
 // Contact form submission
 document.getElementById('contact-form').addEventListener('submit', async (e) => {
   e.preventDefault();
+
+  // Validate phone number
+  const phoneInput = document.getElementById('form-phone');
+  const phonePattern = /^(?:(?:\+|00)33[\s.-]?(?:\(0\)[\s.-]?)?|0)[1-9](?:[\s.-]?\d{2}){4}$/;
+  if (!phonePattern.test(phoneInput.value)) {
+    alert('Veuillez entrer un numéro de téléphone français valide (ex: 06 12 34 56 78)');
+    return;
+  }
+
+  // Validate email
+  const emailInput = document.getElementById('form-email');
+  const emailPattern = /^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$/;
+  if (!emailPattern.test(emailInput.value)) {
+    alert('Veuillez entrer une adresse email valide (ex: exemple@domaine.fr)');
+    return;
+  }
 
   const submitBtn = document.getElementById('submit-btn');
   submitBtn.disabled = true;

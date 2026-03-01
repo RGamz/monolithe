@@ -56,6 +56,7 @@ const allQuestions = [
   {
     id: 'propertyAge',
     title: 'Âge de la propriété ?',
+    condition: (data) => data.projectCategory !== 'extension',
     options: [
       { value: '0-10', label: 'Moins de 10 ans' },
       { value: '10-30', label: '10-30 ans' },
@@ -146,6 +147,7 @@ const allQuestions = [
   {
     id: 'currentCondition',
     title: 'État actuel ?',
+    condition: (data) => data.projectCategory !== 'extension',
     options: [
       { value: 'good', label: 'Bon' },
       { value: 'average', label: 'Moyen' },
@@ -180,13 +182,6 @@ function getFilteredQuestions() {
 }
 
 function calculateEstimate() {
-  const renovationBase = {
-    'complete': 60000, 'partial': 30000, 'kitchen': 18000, 'bathroom': 15000,
-    'bedroom': 8000, 'livingroom': 12000,
-    'insulation': 15000, 'electrical': 10000, 'plumbing': 12000, 'flooring': 8000,
-    'extension': 45000
-  };
-
   // Price per m² for exterior work subtypes
   const exteriorPricePerM2 = {
     'painting': 30,
@@ -196,7 +191,11 @@ function calculateEstimate() {
     'flat-roof': 300
   };
 
-  const propertyMultiplier = { 'house': 1.5, 'flat': 1.0, 'office': 1.3, 'commercial': 1.8 };
+  // Base prices for renovation types (bathroom only)
+  const renovationBase = {
+    'bathroom': 15000
+  };
+
   const conditionMultiplier = { 'good': 0.9, 'average': 1.0, 'poor': 1.1 };
   const ageMultiplier = { '0-10': 0.9, '10-30': 1.0, '30+': 1.1 };
 
@@ -206,8 +205,63 @@ function calculateEstimate() {
   if (formData.exteriorSubtype && exteriorPricePerM2[formData.exteriorSubtype]) {
     const areaNum = parseInt(formData.area) || 0;
     basePrice = exteriorPricePerM2[formData.exteriorSubtype] * areaNum;
-  } else {
-    // Standard calculation for other renovation types
+  }
+  // Check if this is house complete/partial renovation
+  else if (formData.propertyType === 'house' && (formData.renovationType === 'complete' || formData.renovationType === 'partial')) {
+    // Base case: 91-120 m² for house
+    // Complete: 1200 €/m² = 120,000 € for 100m² average
+    // Partial: 600 €/m² = 60,000 € for 100m² average
+    const pricePerM2 = formData.renovationType === 'complete' ? 1200 : 600;
+    const areaNum = parseInt(formData.area) || 100;
+
+    // Calculate base price for the actual area
+    basePrice = pricePerM2 * areaNum;
+
+    // Apply area multiplier based on size relative to base case (91-120 m²)
+    if (areaNum > 180) basePrice *= 0.95;
+    else if (areaNum >= 91) basePrice *= 1.0;
+    else basePrice *= 1.1;
+  }
+  // Check if this is appartement complete/partial renovation
+  else if (formData.propertyType === 'flat' && (formData.renovationType === 'complete' || formData.renovationType === 'partial')) {
+    // Base case: 50-70 m² for appartement
+    // Complete: 1350 €/m² = 81,000 € for 60m² average
+    // Partial: 660 €/m² = 39,600 € for 60m² average
+    const pricePerM2 = formData.renovationType === 'complete' ? 1350 : 660;
+    const areaNum = parseInt(formData.area) || 60;
+
+    // Calculate base price for the actual area
+    basePrice = pricePerM2 * areaNum;
+
+    // Apply area multiplier based on size relative to base case (50-70 m²)
+    if (areaNum > 140) basePrice *= 0.95;
+    else if (areaNum >= 50) basePrice *= 1.0;
+    else basePrice *= 1.1;
+  }
+  // Check if this is office complete renovation
+  else if (formData.propertyType === 'office' && formData.renovationType === 'complete') {
+    // Office complete renovation - use fixed base price with area multipliers
+    basePrice = 60000;
+
+    if (formData.area) {
+      const areaNum = parseInt(formData.area);
+      if (areaNum > 180) basePrice *= 0.95;
+      else if (areaNum >= 91) basePrice *= 1.0;
+      else basePrice *= 1.1;
+    }
+
+    // Apply office multiplier
+    basePrice *= 0,95;
+  }
+  // Extension renovation
+  else if (formData.renovationType === 'extension') {
+    // Extension: 2000 €/m² - no multipliers applied
+    const pricePerM2 = 2000;
+    const areaNum = parseInt(formData.area) || 0;
+    basePrice = pricePerM2 * areaNum;
+  }
+  // Other renovation types (bathroom)
+  else {
     basePrice = renovationBase[formData.renovationType] || 30000;
 
     if (formData.area) {
@@ -218,13 +272,11 @@ function calculateEstimate() {
     }
   }
 
-  // Apply multipliers (only if not exterior work, since exterior work uses per-m² pricing)
-  if (!formData.exteriorSubtype) {
-    basePrice *= propertyMultiplier[formData.propertyType] || 1;
+  // Apply condition and age multipliers (not for extensions)
+  if (formData.renovationType !== 'extension') {
+    basePrice *= conditionMultiplier[formData.currentCondition] || 1;
+    basePrice *= ageMultiplier[formData.propertyAge] || 1;
   }
-
-  basePrice *= conditionMultiplier[formData.currentCondition] || 1;
-  basePrice *= ageMultiplier[formData.propertyAge] || 1;
 
   // Timeline has no impact on price - all options have 1.0 multiplier
 

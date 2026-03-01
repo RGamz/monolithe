@@ -334,18 +334,29 @@ function renderEstimate() {
   document.getElementById('contact-form-area').classList.add('hidden');
   area.classList.remove('hidden');
 
+  // Build summary items
   const summaryItems = [
     { label: 'Projet', value: getLabelForValue('projectCategory', formData.projectCategory) },
     { label: 'Bien', value: getLabelForValue('propertyType', formData.propertyType) },
     { label: 'Âge', value: getLabelForValue('propertyAge', formData.propertyAge) },
-    { label: 'Travaux', value: getLabelForValue('renovationType', formData.renovationType) },
+    { label: 'Travaux', value: getLabelForValue('renovationType', formData.renovationType) }
+  ];
+
+  // Add exterior subtype if applicable
+  if (formData.exteriorSubtype) {
+    summaryItems.push({ label: 'Type', value: getLabelForValue('exteriorSubtype', formData.exteriorSubtype) });
+  }
+
+  summaryItems.push(
     { label: 'Surface', value: formData.area ? `${formData.area} m²` : '' },
     { label: 'État', value: getLabelForValue('currentCondition', formData.currentCondition) },
     { label: 'Délai', value: getLabelForValue('timeline', formData.timeline) }
-  ].filter(item => item.value);
+  );
+
+  const filteredSummaryItems = summaryItems.filter(item => item.value);
 
   let summaryHtml = '';
-  summaryItems.forEach(item => {
+  filteredSummaryItems.forEach(item => {
     summaryHtml += `<div class="summary-row"><span class="summary-label">${item.label}</span><span class="summary-value">${item.value}</span></div>`;
   });
 

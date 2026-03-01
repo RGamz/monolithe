@@ -15,6 +15,7 @@ let formData = {
   propertyType: '',
   propertyAge: '',
   renovationType: '',
+  exteriorSubtype: '',
   area: '',
   currentCondition: '',
   timeline: '',
@@ -96,6 +97,25 @@ const allQuestions = [
     ]
   },
   {
+    id: 'exteriorSubtype',
+    title: 'Type de travaux de façade ?',
+    condition: (data) => data.renovationType === 'facade',
+    options: [
+      { value: 'painting', label: 'Travaux de peinture' },
+      { value: 'coating', label: "Travaux d'enduit" },
+      { value: 'exterior-insulation', label: 'Isolation extérieure' }
+    ]
+  },
+  {
+    id: 'exteriorSubtype',
+    title: 'Type de toiture ?',
+    condition: (data) => data.renovationType === 'roofing',
+    options: [
+      { value: 'traditional-tile', label: 'Traditionnelle tuile' },
+      { value: 'flat-roof', label: 'Toiture terrasse' }
+    ]
+  },
+  {
     id: 'renovationType',
     title: "Type d'extension ?",
     condition: (data) => data.projectCategory === 'extension',
@@ -169,26 +189,50 @@ function getFilteredQuestions() {
 function calculateEstimate() {
   const renovationBase = {
     'complete': 60000, 'partial': 30000, 'kitchen': 18000, 'bathroom': 14000,
-    'bedroom': 8000, 'livingroom': 12000, 'facade': 25000, 'roofing': 20000,
+    'bedroom': 8000, 'livingroom': 12000,
     'insulation': 15000, 'electrical': 10000, 'plumbing': 12000, 'flooring': 8000,
-    'painting': 5000, 'extension': 45000
+    'extension': 45000
   };
+
+  // Price per m² for exterior work subtypes
+  const exteriorPricePerM2 = {
+    'painting': 30,
+    'coating': 40,
+    'exterior-insulation': 140,
+    'traditional-tile': 200,
+    'flat-roof': 300
+  };
+
   const propertyMultiplier = { 'house': 1.5, 'flat': 1.0, 'office': 1.3, 'commercial': 1.8 };
   const conditionMultiplier = { 'good': 0.9, 'average': 1.0, 'poor': 1.1 };
   const ageMultiplier = { '0-10': 0.9, '10-30': 1.0, '30+': 1.1 };
 
-  let basePrice = renovationBase[formData.renovationType] || 30000;
-  basePrice *= propertyMultiplier[formData.propertyType] || 1;
+  let basePrice;
+
+  // Check if this is exterior work with subtype (façade or toiture)
+  if (formData.exteriorSubtype && exteriorPricePerM2[formData.exteriorSubtype]) {
+    const areaNum = parseInt(formData.area) || 0;
+    basePrice = exteriorPricePerM2[formData.exteriorSubtype] * areaNum;
+  } else {
+    // Standard calculation for other renovation types
+    basePrice = renovationBase[formData.renovationType] || 30000;
+
+    if (formData.area) {
+      const areaNum = parseInt(formData.area);
+      if (areaNum > 150) basePrice *= 1.5;
+      else if (areaNum > 100) basePrice *= 1.3;
+      else if (areaNum > 50) basePrice *= 1.1;
+      if (areaNum > 200) basePrice += (areaNum - 200) * 400;
+    }
+  }
+
+  // Apply multipliers (only if not exterior work, since exterior work uses per-m² pricing)
+  if (!formData.exteriorSubtype) {
+    basePrice *= propertyMultiplier[formData.propertyType] || 1;
+  }
+
   basePrice *= conditionMultiplier[formData.currentCondition] || 1;
   basePrice *= ageMultiplier[formData.propertyAge] || 1;
-
-  if (formData.area) {
-    const areaNum = parseInt(formData.area);
-    if (areaNum > 150) basePrice *= 1.5;
-    else if (areaNum > 100) basePrice *= 1.3;
-    else if (areaNum > 50) basePrice *= 1.1;
-    if (areaNum > 200) basePrice += (areaNum - 200) * 400;
-  }
 
   // Timeline has no impact on price - all options have 1.0 multiplier
 
@@ -417,6 +461,7 @@ document.getElementById('contact-form').addEventListener('submit', async (e) => 
         propertyType: formData.propertyType,
         propertyAge: formData.propertyAge,
         renovationType: formData.renovationType,
+        exteriorSubtype: formData.exteriorSubtype,
         area: formData.area,
         currentCondition: formData.currentCondition,
         timeline: formData.timeline,

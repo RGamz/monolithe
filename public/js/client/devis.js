@@ -38,11 +38,19 @@ const allQuestions = [
   {
     id: 'propertyType',
     title: 'Type de bien ?',
-    condition: (data) => data.projectCategory !== 'exterior',
+    condition: (data) => data.projectCategory === 'renovation',
     options: [
       { value: 'house', label: 'Maison' },
       { value: 'flat', label: 'Appartement' },
       { value: 'office', label: 'Bureau' }
+    ]
+  },
+  {
+    id: 'propertyType',
+    title: 'Type de bien ?',
+    condition: (data) => data.projectCategory === 'extension',
+    options: [
+      { value: 'house', label: 'Maison' }
     ]
   },
   {
@@ -107,14 +115,6 @@ const allQuestions = [
     options: [
       { value: 'traditional-tile', label: 'Traditionnelle tuile' },
       { value: 'flat-roof', label: 'Toiture terrasse' }
-    ]
-  },
-  {
-    id: 'renovationType',
-    title: "Type d'extension ?",
-    condition: (data) => data.projectCategory === 'extension',
-    options: [
-      { value: 'extension', label: 'Extension maison' }
     ]
   },
   {
@@ -458,6 +458,11 @@ function handleOptionClick(value) {
   const filtered = getFilteredQuestions();
   const question = filtered[currentStep];
   formData[question.id] = value;
+
+  // Auto-set renovationType to 'extension' when extension is selected as project category
+  if (question.id === 'projectCategory' && value === 'extension') {
+    formData.renovationType = 'extension';
+  }
 
   setTimeout(() => {
     if (currentStep < filtered.length - 1) {

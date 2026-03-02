@@ -78,6 +78,14 @@ function populateFormDropdowns() {
   }
 }
 
+function filterArtisans(query) {
+  const q = query.toLowerCase();
+  document.querySelectorAll('#pform-artisans .checkbox-label').forEach(label => {
+    const text = label.textContent.toLowerCase();
+    label.style.display = text.includes(q) ? '' : 'none';
+  });
+}
+
 function renderProjects() {
   const container = document.getElementById('page-content');
   const isAdmin = user.role === 'ADMIN';
@@ -272,8 +280,10 @@ function openCreateProjectModal() {
   document.getElementById('pform-signed').checked = false;
   document.getElementById('pform-error').classList.add('hidden');
 
-  // Uncheck all artisan checkboxes
+  // Uncheck all artisan checkboxes and reset search
   document.querySelectorAll('.artisan-checkbox').forEach(cb => cb.checked = false);
+  const artisanSearch = document.getElementById('pform-artisans-search');
+  if (artisanSearch) { artisanSearch.value = ''; filterArtisans(''); }
 
   document.getElementById('project-modal-backdrop').classList.remove('hidden');
 }
@@ -295,7 +305,9 @@ function openEditProjectModal(projectId) {
   document.getElementById('pform-signed').checked = !!p.end_of_work_signed;
   document.getElementById('pform-error').classList.add('hidden');
 
-  // Check assigned artisans
+  // Reset artisan search and check assigned artisans
+  const artisanSearchEdit = document.getElementById('pform-artisans-search');
+  if (artisanSearchEdit) { artisanSearchEdit.value = ''; filterArtisans(''); }
   const assignedIds = p.artisan_ids || [];
   document.querySelectorAll('.artisan-checkbox').forEach(cb => {
     cb.checked = assignedIds.includes(cb.value);

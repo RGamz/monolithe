@@ -6,6 +6,65 @@
  * Section-specific colors (dark vs light) stay in their own CSS files.
  */
 
+/* ---- Topbar (contact strip above header) ---- */
+
+.topbar {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 1.5rem;
+  padding: 7px 2rem;
+  background: #171717;
+  font-size: 0.75rem;
+  letter-spacing: 0.02em;
+}
+
+.topbar-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #b0b0b0;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.topbar-link:hover {
+  color: #ffffff;
+}
+
+.topbar-icon {
+  width: 13px;
+  height: 13px;
+  flex-shrink: 0;
+  opacity: 0.7;
+}
+
+@media (max-width: 768px) {
+  .topbar {
+    justify-content: center;
+    gap: 1.2rem;
+    padding: 6px 1rem;
+  }
+}
+
+/* ---- Logo tagline (below logo name) ---- */
+
+.logo-text {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.logo-tagline {
+  font-size: 0.6rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #999;
+  font-family: sans-serif;
+  font-weight: 400;
+  line-height: 1;
+}
+
 /* ---- Hamburger Button ---- */
 
 .nav-hamburger {

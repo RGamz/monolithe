@@ -35,6 +35,9 @@ app.use(cookieParser());
 // Static assets
 // /assets serves everything under public/assets (including /assets/images/*)
 // The separate /images alias has been removed — use /assets/images/ instead.
+// Serve robots.txt and sitemap.xml from public root
+app.use(express.static(path.join(__dirname, 'public'), { index: false }));
+
 app.use('/css',       express.static(path.join(__dirname, 'public', 'css')));
 app.use('/js',        express.static(path.join(__dirname, 'public', 'js')));
 app.use('/assets',    express.static(path.join(__dirname, 'public', 'assets')));

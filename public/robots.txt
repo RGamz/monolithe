@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+
+# Block portal and API — no value for public indexing
+Disallow: /pro/portail/
+Disallow: /api/
+
+Sitemap: https://monolithe.pro/sitemap.xml

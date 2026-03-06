@@ -221,7 +221,7 @@ main {
 
 .logo {
   display: flex;
-  align-items: flex-end;
+  align-items: center;
   font-size: var(--text-2xl);
   font-weight: var(--font-weight-light);
   letter-spacing: -0.025em;
@@ -230,7 +230,7 @@ main {
 
 .logo img {
   height: 40px;
-  padding-bottom: 6px;
+  padding-bottom: 0;
 }
 
 .nav {

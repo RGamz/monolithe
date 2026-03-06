@@ -23,6 +23,23 @@
   background: #f9f9f9;
   border-bottom: 1px solid #e8e8e8;
 }
+.topbar-pro {
+  background: #0a0a0a;
+  border-bottom: 1px solid #2a2a2a;
+}
+
+.topbar-pro .topbar-link {
+  color: #a3a3a3;
+  font-size: 0.73rem;
+}
+
+.topbar-pro .topbar-link:hover {
+  color: #ffffff;
+}
+
+.topbar-pro .topbar-icon {
+  opacity: 0.6;
+}
 
 .topbar-link {
   display: inline-flex;

@@ -200,12 +200,12 @@ input, textarea {
 
 .logo {
   display: flex;
-  align-items: center;
-  align-items: center;
+  align-items: flex-end;
   font-size: var(--text-2xl);
   font-weight: var(--font-weight-light);
   letter-spacing: -0.025em;
   color: var(--color-primary-dark);
+  gap: 2px;
 }
 
 .logo img {

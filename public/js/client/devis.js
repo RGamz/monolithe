@@ -123,6 +123,7 @@ const allQuestions = [
     condition: (data) => data.renovationType !== 'facade' && data.renovationType !== 'roofing' && data.renovationType !== 'extension',
     type: 'input',
     inputType: 'number',
+    min: 20,
     placeholder: 'en m²',
     suffix: 'm²'
   },
@@ -132,6 +133,7 @@ const allQuestions = [
     condition: (data) => data.renovationType === 'extension',
     type: 'input',
     inputType: 'number',
+    min: 20,
     placeholder: 'en m²',
     suffix: 'm²'
   },
@@ -141,6 +143,7 @@ const allQuestions = [
     condition: (data) => data.renovationType === 'facade',
     type: 'input',
     inputType: 'number',
+    min: 20,
     placeholder: 'en m²',
     suffix: 'm²'
   },
@@ -150,6 +153,7 @@ const allQuestions = [
     condition: (data) => data.renovationType === 'roofing',
     type: 'input',
     inputType: 'number',
+    min: 20,
     placeholder: 'en m²',
     suffix: 'm²'
   },
@@ -212,7 +216,7 @@ function calculateEstimate() {
 
   // Check if this is exterior work with subtype (façade or toiture)
   if (formData.exteriorSubtype && exteriorPricePerM2[formData.exteriorSubtype]) {
-    const areaNum = parseInt(formData.area) || 0;
+    const areaNum = parseInt(formData.area) || 1;
     basePrice = exteriorPricePerM2[formData.exteriorSubtype] * areaNum;
   }
   // Check if this is house complete/partial renovation
@@ -260,13 +264,13 @@ function calculateEstimate() {
     }
 
     // Apply office multiplier
-    basePrice *= 0,95;
+    basePrice *= 0.95;
   }
   // Extension renovation
   else if (formData.renovationType === 'extension') {
     // Extension: 2000 €/m² - no multipliers applied
     const pricePerM2 = 2000;
-    const areaNum = parseInt(formData.area) || 0;
+    const areaNum = parseInt(formData.area) || 1;
     basePrice = pricePerM2 * areaNum;
   }
   // Other renovation types (bathroom)
@@ -345,7 +349,7 @@ function renderQuestion() {
       <form id="input-form" class="space-y-6" onsubmit="handleInputSubmit(event)">
         <div class="form-input-wrapper">
           <input type="${question.inputType}" placeholder="${question.placeholder}" 
-                 ${question.maxLength ? `maxlength="${question.maxLength}"` : ''}
+                 ${question.maxLength ? `maxlength="${question.maxLength}"` : ''} ${question.min ? `min="${question.min}"` : ''}
                  class="form-input form-input-lg" required autofocus id="question-input" />
           ${question.suffix ? `<span class="form-input-suffix">${question.suffix}</span>` : ''}
         </div>

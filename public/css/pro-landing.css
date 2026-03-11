@@ -836,3 +836,9 @@ input, textarea {
 .text-link:hover {
   opacity: 0.8;
 }
+
+@media (max-width: 768px) {
+  .contact-responsive {
+    flex-direction: column;
+  }
+}

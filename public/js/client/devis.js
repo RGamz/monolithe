@@ -123,7 +123,7 @@ const allQuestions = [
     condition: (data) => data.renovationType !== 'facade' && data.renovationType !== 'roofing' && data.renovationType !== 'extension',
     type: 'input',
     inputType: 'number',
-    min: 20,
+    min: 5,
     placeholder: 'en m²',
     suffix: 'm²'
   },
@@ -133,7 +133,7 @@ const allQuestions = [
     condition: (data) => data.renovationType === 'extension',
     type: 'input',
     inputType: 'number',
-    min: 20,
+    min: 5,
     placeholder: 'en m²',
     suffix: 'm²'
   },
@@ -143,7 +143,7 @@ const allQuestions = [
     condition: (data) => data.renovationType === 'facade',
     type: 'input',
     inputType: 'number',
-    min: 20,
+    min: 5,
     placeholder: 'en m²',
     suffix: 'm²'
   },
@@ -153,7 +153,7 @@ const allQuestions = [
     condition: (data) => data.renovationType === 'roofing',
     type: 'input',
     inputType: 'number',
-    min: 20,
+    min: 5,
     placeholder: 'en m²',
     suffix: 'm²'
   },

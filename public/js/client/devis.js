@@ -424,8 +424,8 @@ function renderEstimate() {
         ${estimate.visitRequired
           ? `<div class="estimate-value">Visite technique obligatoire</div>
              <div class="estimate-average">Votre projet nécessite une visite technique pour établir un devis précis.</div>`
-          : `<div class="estimate-value">${estimate.low.toLocaleString()} - ${estimate.high.toLocaleString()} €</div>
-             <div class="estimate-average">Moyenne : ${estimate.average.toLocaleString()} €</div>`
+          : `<div class="estimate-value" style="font-size:1.8rem;font-weight:700;">Moyenne : ${estimate.average.toLocaleString()} €</div>
+             <div class="estimate-average" style="font-size:0.9rem;font-weight:400;">Fourchette : ${estimate.low.toLocaleString()} - ${estimate.high.toLocaleString()} €</div>`
         }
       </div>
     </div>

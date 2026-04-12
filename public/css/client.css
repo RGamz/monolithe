@@ -428,6 +428,15 @@ main {
   padding: var(--spacing-12);
 }
 
+@media (max-width: 767px) {
+  .card-padded {
+    padding: var(--spacing-4);
+  }
+  .card-padded-lg {
+    padding: var(--spacing-6);
+  }
+}
+
 .card-subtle {
   background-color: var(--color-background-subtle);
 }
@@ -938,6 +947,21 @@ main {
   align-items: center;
   justify-content: center;
   margin: 0 auto var(--spacing-6);
+}
+
+@media (max-width: 767px) {
+  .success-icon {
+    width: 40px;
+    height: 40px;
+    margin-bottom: var(--spacing-3);
+  }
+  .success-icon .icon {
+    width: 20px;
+    height: 20px;
+  }
+  .estimate-value {
+    font-size: var(--text-3xl);
+  }
 }
 
 

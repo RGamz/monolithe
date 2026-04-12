@@ -358,8 +358,10 @@ function renderQuestion() {
       if (opt.info) {
         html += `
           <div class="option-btn-wrapper">
-            <button class="option-btn${selected}" onclick="handleOptionClick('${opt.value}')">${opt.label}</button>
-            <button class="info-btn" onclick="toggleInfo('${opt.value}')" aria-label="En savoir plus sur ${opt.label}">?</button>
+            <button class="option-btn option-btn-with-info${selected}" onclick="handleOptionClick('${opt.value}')">
+              <span>${opt.label}</span>
+              <span class="info-btn" onclick="event.stopPropagation(); toggleInfo('${opt.value}')" aria-label="En savoir plus sur ${opt.label}">?</span>
+            </button>
             <div class="info-mobile-panel hidden" id="info-mobile-${opt.value}">${opt.info}</div>
           </div>`;
       } else {

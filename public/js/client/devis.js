@@ -403,6 +403,7 @@ function renderEstimate() {
   document.getElementById('question-area').classList.add('hidden');
   document.getElementById('contact-form-area').classList.add('hidden');
   area.classList.remove('hidden');
+  area.scrollIntoView({ behavior: 'smooth', block: 'start' });
 
   // Build summary items
   const summaryItems = [

@@ -516,6 +516,114 @@ main {
   color: var(--color-white);
 }
 
+/* -------------------------
+   Option info (? button + panels)
+   ------------------------- */
+.option-btn-wrapper {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--spacing-2);
+}
+
+.option-btn-wrapper .option-btn {
+  flex: 1;
+}
+
+.info-btn {
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 1px solid var(--color-border);
+  background: var(--color-background);
+  color: var(--color-muted);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transition-normal);
+}
+
+.info-btn:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+/* Mobile panel — appears below the button row */
+.info-mobile-panel {
+  width: 100%;
+  background: var(--color-background-subtle);
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  padding: var(--spacing-4);
+  font-size: 0.875rem;
+  color: var(--color-text-light);
+  line-height: 1.6;
+}
+
+.info-mobile-panel ul {
+  margin: var(--spacing-2) 0 0 var(--spacing-4);
+  padding: 0;
+}
+
+.info-mobile-panel li {
+  margin-bottom: var(--spacing-1);
+}
+
+/* Desktop aside panel — fixed on the right */
+.info-aside {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 320px;
+  height: 100vh;
+  background: var(--color-background);
+  border-left: 1px solid var(--color-border);
+  padding: var(--spacing-8) var(--spacing-6);
+  overflow-y: auto;
+  z-index: 100;
+  box-shadow: -4px 0 16px rgba(0,0,0,0.06);
+}
+
+.info-aside-content {
+  font-size: 0.875rem;
+  color: var(--color-text-light);
+  line-height: 1.7;
+}
+
+.info-aside-content strong {
+  display: block;
+  font-size: 0.95rem;
+  color: var(--color-text);
+  margin-bottom: var(--spacing-3);
+}
+
+.info-aside-content ul {
+  margin: 0 0 0 var(--spacing-4);
+  padding: 0;
+}
+
+.info-aside-content li {
+  margin-bottom: var(--spacing-2);
+}
+
+/* On mobile, never show the aside panel */
+@media (max-width: 767px) {
+  .info-aside {
+    display: none !important;
+  }
+}
+
+/* On desktop, never show the mobile inline panels */
+@media (min-width: 768px) {
+  .info-mobile-panel {
+    display: none !important;
+  }
+}
+
 
 /* -------------------------
    Progress Bar

@@ -76,8 +76,8 @@ const allQuestions = [
     title: 'Type de rénovation ?',
     condition: (data) => data.projectCategory === 'renovation' && data.propertyType !== 'office',
     options: [
-      { value: 'complete', label: 'Complète' },
-      { value: 'partial', label: 'Partielle' },
+      { value: 'complete', label: 'Complète', info: '<strong>Prestations en rénovation complète</strong><ul><li>Doublage technique en placo 70mm et faux plafond technique, cloisons non porteuses en placo</li><li>Rénovation de réseaux d\'électricité</li><li>Rénovation complète de cuisine et salle de bain</li><li>Nouveaux réseaux de plomberie</li><li>Nouveau système de chauffage : radiateurs électriques</li><li>Réfection complète des surfaces au sol : carrelage, parquet stratifié, nouvelles plinthes</li><li>Réfection complète des murs en peinture</li></ul>' },
+      { value: 'partial', label: 'Partielle', info: '<strong>Prestations en rénovation partielle</strong><ul><li>Ponçage et vitrification du sol ou pose de sol souple</li><li>Rafraîchissement de la peinture des murs et plafonds</li><li>Reprise électrique partielle</li><li>Rénovation de la salle de bain</li><li>Rénovation de la cuisine</li></ul>' },
       { value: 'bathroom', label: 'Salle de bain' }
     ]
   },
@@ -355,9 +355,27 @@ function renderQuestion() {
     html += '<div class="option-grid">';
     question.options.forEach(opt => {
       const selected = formData[question.id] === opt.value ? ' option-btn-selected' : '';
-      html += `<button class="option-btn${selected}" onclick="handleOptionClick('${opt.value}')">${opt.label}</button>`;
+      if (opt.info) {
+        html += `
+          <div class="option-btn-wrapper">
+            <button class="option-btn${selected}" onclick="handleOptionClick('${opt.value}')">${opt.label}</button>
+            <button class="info-btn" onclick="toggleInfo('${opt.value}')" aria-label="En savoir plus sur ${opt.label}">?</button>
+            <div class="info-mobile-panel hidden" id="info-mobile-${opt.value}">${opt.info}</div>
+          </div>`;
+      } else {
+        html += `<button class="option-btn${selected}" onclick="handleOptionClick('${opt.value}')">${opt.label}</button>`;
+      }
     });
     html += '</div>';
+
+    // Aside panel for desktop (shared, injected once)
+    if (question.options.some(o => o.info)) {
+      const infoPanels = question.options
+        .filter(o => o.info)
+        .map(o => `<div class="info-aside-content hidden" id="info-aside-${o.value}">${o.info}</div>`)
+        .join('');
+      html += `<aside class="info-aside hidden" id="info-aside-panel">${infoPanels}</aside>`;
+    }
   }
 
   // Back button
@@ -462,6 +480,29 @@ function startQuestionnaire() {
   document.getElementById('landing-view').classList.add('hidden');
   document.getElementById('questionnaire-view').classList.remove('hidden');
   renderQuestion();
+}
+
+function toggleInfo(value) {
+  const isDesktop = window.innerWidth >= 768;
+
+  if (isDesktop) {
+    const panel = document.getElementById('info-aside-panel');
+    const allContents = panel.querySelectorAll('.info-aside-content');
+    const target = document.getElementById(`info-aside-${value}`);
+    const isAlreadyOpen = !target.classList.contains('hidden');
+
+    allContents.forEach(c => c.classList.add('hidden'));
+
+    if (isAlreadyOpen) {
+      panel.classList.add('hidden');
+    } else {
+      target.classList.remove('hidden');
+      panel.classList.remove('hidden');
+    }
+  } else {
+    const mobilePanel = document.getElementById(`info-mobile-${value}`);
+    mobilePanel.classList.toggle('hidden');
+  }
 }
 
 function handleOptionClick(value) {

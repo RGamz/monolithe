@@ -209,8 +209,8 @@ function calculateEstimate() {
     'bathroom': 15000
   };
 
-  const conditionMultiplier = { 'good': 0.9, 'average': 1.0, 'poor': 1.1 };
-  const ageMultiplier = { '0-10': 0.9, '10-30': 1.0, '30+': 1.1 };
+  const conditionMultiplier = { 'good': 0.95, 'average': 1.0, 'poor': 1.05 };
+  const ageMultiplier = { '0-10': 0.95, '10-30': 1.0, '30+': 1.05 };
 
   let basePrice;
 
@@ -275,7 +275,7 @@ function calculateEstimate() {
     if (formData.renovationType === 'bathroom' && formData.area) {
       const areaNum = parseInt(formData.area);
       if (areaNum < 5) basePrice = 8000;
-      else if (areaNum <= 15) basePrice = 1100 * areaNum;
+      else if (areaNum <= 15) basePrice = 900 * areaNum;
       else return { visitRequired: true };
     } else {
       basePrice = renovationBase[formData.renovationType] || 30000;

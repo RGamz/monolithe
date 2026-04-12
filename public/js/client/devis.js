@@ -221,7 +221,7 @@ function calculateEstimate() {
   }
   // Check if this is house complete/partial renovation
   else if (formData.propertyType === 'house' && (formData.renovationType === 'complete' || formData.renovationType === 'partial')) {
-    // Base case: 91-120 m² for house
+    // Base case: 59-180 m² for house
     // Complete: 1000 €/m² = 100,000 € for 100m² average
     // Partial: 500 €/m² = 50,000 € for 100m² average
     const pricePerM2 = formData.renovationType === 'complete' ? 1000 : 500;
@@ -232,8 +232,7 @@ function calculateEstimate() {
 
     // Apply area multiplier based on size relative to base case (91-120 m²)
     if (areaNum > 180) basePrice *= 0.95;
-    else if (areaNum >= 91) basePrice *= 1.0;
-    else basePrice *= 1.1;
+    else basePrice *= 1.0;
   }
   // Check if this is appartement complete/partial renovation
   else if (formData.propertyType === 'flat' && (formData.renovationType === 'complete' || formData.renovationType === 'partial')) {
@@ -249,18 +248,15 @@ function calculateEstimate() {
     // Apply area multiplier based on size relative to base case (50-70 m²)
     if (areaNum > 140) basePrice *= 0.95;
     else if (areaNum >= 50) basePrice *= 1.0;
-    else basePrice *= 1.1;
+    else basePrice *= 1.05;
   }
   // Check if this is office complete renovation
   else if (formData.propertyType === 'office' && formData.renovationType === 'complete') {
-    // Office complete renovation - use fixed base price with area multipliers
-    basePrice = 60000;
-
-    if (formData.area) {
-      const areaNum = parseInt(formData.area);
-      if (areaNum > 180) basePrice *= 0.95;
-      else if (areaNum >= 91) basePrice *= 1.0;
-      else basePrice *= 1.1;
+    const areaNum = parseInt(formData.area) || 1;
+    if (areaNum >= 300) {
+      basePrice = 304 * areaNum; // 5% discount for large offices
+    } else {
+      basePrice = 320 * areaNum;
     }
   }
   // Extension renovation

@@ -222,9 +222,9 @@ function calculateEstimate() {
   // Check if this is house complete/partial renovation
   else if (formData.propertyType === 'house' && (formData.renovationType === 'complete' || formData.renovationType === 'partial')) {
     // Base case: 91-120 m² for house
-    // Complete: 1200 €/m² = 120,000 € for 100m² average
-    // Partial: 600 €/m² = 60,000 € for 100m² average
-    const pricePerM2 = formData.renovationType === 'complete' ? 1200 : 600;
+    // Complete: 1000 €/m² = 100,000 € for 100m² average
+    // Partial: 500 €/m² = 50,000 € for 100m² average
+    const pricePerM2 = formData.renovationType === 'complete' ? 1000 : 500;
     const areaNum = parseInt(formData.area) || 100;
 
     // Calculate base price for the actual area
@@ -238,9 +238,9 @@ function calculateEstimate() {
   // Check if this is appartement complete/partial renovation
   else if (formData.propertyType === 'flat' && (formData.renovationType === 'complete' || formData.renovationType === 'partial')) {
     // Base case: 50-70 m² for appartement
-    // Complete: 1350 €/m² = 81,000 € for 60m² average
-    // Partial: 660 €/m² = 39,600 € for 60m² average
-    const pricePerM2 = formData.renovationType === 'complete' ? 1350 : 660;
+    // Complete: 1000 €/m² = 60,000 € for 60m² average
+    // Partial: 550 €/m² = 33,000 € for 60m² average
+    const pricePerM2 = formData.renovationType === 'complete' ? 1000 : 550;
     const areaNum = parseInt(formData.area) || 60;
 
     // Calculate base price for the actual area
@@ -262,26 +262,23 @@ function calculateEstimate() {
       else if (areaNum >= 91) basePrice *= 1.0;
       else basePrice *= 1.1;
     }
-
-    // Apply office multiplier
-    basePrice *= 0.95;
   }
   // Extension renovation
   else if (formData.renovationType === 'extension') {
-    // Extension: 2000 €/m² - no multipliers applied
-    const pricePerM2 = 2000;
+    // Extension: 1800 €/m² - no multipliers applied
+    const pricePerM2 = 1800;
     const areaNum = parseInt(formData.area) || 1;
     basePrice = pricePerM2 * areaNum;
   }
   // Other renovation types (bathroom)
   else {
-    basePrice = renovationBase[formData.renovationType] || 30000;
-
-    if (formData.area) {
+    if (formData.renovationType === 'bathroom' && formData.area) {
       const areaNum = parseInt(formData.area);
-      if (areaNum > 120) basePrice *= 0.95;
-      else if (areaNum >= 91) basePrice *= 1.0;
-      else basePrice *= 1.1;
+      if (areaNum < 5) basePrice = 8000;
+      else if (areaNum <= 15) basePrice = 1100 * areaNum;
+      else return { visitRequired: true };
+    } else {
+      basePrice = renovationBase[formData.renovationType] || 30000;
     }
   }
 
@@ -428,8 +425,12 @@ function renderEstimate() {
     <div class="card card-padded-lg">
       <div class="estimate-display">
         <div class="estimate-label">Estimation de votre projet</div>
-        <div class="estimate-value">${estimate.low.toLocaleString()} - ${estimate.high.toLocaleString()} €</div>
-        <div class="estimate-average">Moyenne : ${estimate.average.toLocaleString()} €</div>
+        ${estimate.visitRequired
+          ? `<div class="estimate-value">Visite technique obligatoire</div>
+             <div class="estimate-average">Votre projet nécessite une visite technique pour établir un devis précis.</div>`
+          : `<div class="estimate-value">${estimate.low.toLocaleString()} - ${estimate.high.toLocaleString()} €</div>
+             <div class="estimate-average">Moyenne : ${estimate.average.toLocaleString()} €</div>`
+        }
       </div>
     </div>
 
@@ -555,9 +556,10 @@ document.getElementById('contact-form').addEventListener('submit', async (e) => 
         currentCondition: formData.currentCondition,
         timeline: formData.timeline,
         zipCode: formData.zipCode,
-        estimateLow: estimate.low,
-        estimateHigh: estimate.high,
-        estimateAverage: estimate.average
+        estimateLow: estimate.visitRequired ? null : estimate.low,
+        estimateHigh: estimate.visitRequired ? null : estimate.high,
+        estimateAverage: estimate.visitRequired ? null : estimate.average,
+        visitRequired: estimate.visitRequired || false
       })
     });
 

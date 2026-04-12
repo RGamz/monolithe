@@ -261,8 +261,8 @@ function calculateEstimate() {
   }
   // Extension renovation
   else if (formData.renovationType === 'extension') {
-    // Extension: 1800 €/m² - no multipliers applied
-    const pricePerM2 = 1800;
+    // Extension: 1600 €/m² - no multipliers applied
+    const pricePerM2 = 1600;
     const areaNum = parseInt(formData.area) || 1;
     basePrice = pricePerM2 * areaNum;
   }

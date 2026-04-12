@@ -433,7 +433,7 @@ function renderEstimate() {
     <div class="card card-padded text-center">
       <h3 class="heading-card mb-4">Envie d'en discuter ?</h3>
       <p class="text-body mb-6">Planifiez un appel gratuit avec un expert pour affiner votre projet</p>
-      <a href="https://calendly.com/YOUR_CALENDLY_LINK" target="_blank" rel="noopener noreferrer" class="btn btn-primary btn-lg">
+      <a href="https://calendly.com/monolithe" target="_blank" rel="noopener noreferrer" class="btn btn-primary btn-lg">
         <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
         Planifier un appel
       </a>

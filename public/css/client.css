@@ -571,8 +571,9 @@ main {
 }
 
 .info-mobile-panel ul {
-  margin: var(--spacing-2) 0 0 var(--spacing-4);
+  margin: var(--spacing-2) 0 0 0;
   padding: 0;
+  list-style: none;
 }
 
 .info-mobile-panel li {
@@ -608,8 +609,9 @@ main {
 }
 
 .info-aside-content ul {
-  margin: 0 0 0 var(--spacing-4);
+  margin: 0;
   padding: 0;
+  list-style: none;
 }
 
 .info-aside-content li {

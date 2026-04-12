@@ -76,8 +76,8 @@ const allQuestions = [
     title: 'Type de rénovation ?',
     condition: (data) => data.projectCategory === 'renovation' && data.propertyType !== 'office',
     options: [
-      { value: 'complete', label: 'Complète', info: '<strong>Prestations en rénovation complète</strong><ul><li>Doublage technique en placo 70mm et faux plafond technique, cloisons non porteuses en placo</li><li>Rénovation de réseaux d\'électricité</li><li>Rénovation complète de cuisine et salle de bain</li><li>Nouveaux réseaux de plomberie</li><li>Nouveau système de chauffage : radiateurs électriques</li><li>Réfection complète des surfaces au sol : carrelage, parquet stratifié, nouvelles plinthes</li><li>Réfection complète des murs en peinture</li></ul>' },
-      { value: 'partial', label: 'Partielle', info: '<strong>Prestations en rénovation partielle</strong><ul><li>Ponçage et vitrification du sol ou pose de sol souple</li><li>Rafraîchissement de la peinture des murs et plafonds</li><li>Reprise électrique partielle</li><li>Rénovation de la salle de bain</li><li>Rénovation de la cuisine</li></ul>' },
+      { value: 'complete', label: 'Complète', info: '<strong>Prestations en rénovation complète</strong><ul><li>— Doublage technique en placo 70mm et faux plafond technique, cloisons non porteuses en placo</li><li>— Rénovation de réseaux d\'électricité</li><li>— Rénovation complète de cuisine et salle de bain</li><li>— Nouveaux réseaux de plomberie</li><li>— Nouveau système de chauffage : radiateurs électriques</li><li>— Réfection complète des surfaces au sol : carrelage, parquet stratifié, nouvelles plinthes</li><li>— Réfection complète des murs en peinture</li></ul>' },
+      { value: 'partial', label: 'Partielle', info: '<strong>Prestations en rénovation partielle</strong><ul><li>— Ponçage et vitrification du sol ou pose de sol souple</li><li>— Rafraîchissement de la peinture des murs et plafonds</li><li>— Reprise électrique partielle</li><li>— Rénovation de la salle de bain</li><li>— Rénovation de la cuisine</li></ul>' },
       { value: 'bathroom', label: 'Salle de bain' }
     ]
   },

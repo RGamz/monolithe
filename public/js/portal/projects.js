@@ -14,6 +14,7 @@ const PROJ_ICONS = {
   xCircle: '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="m15 9-6 6"/><path d="m9 9 6 6"/></svg>',
   folder: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"/></svg>',
   chevronDown: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>',
+  star: '<svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>',
   chevronUp: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m18 15-6-6-6 6"/></svg>',
   calendar: '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/></svg>',
   plus: '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>',
@@ -143,8 +144,17 @@ function accordionItem(project, index, isAdmin) {
   ).join('');
   const artisanDisplay = artisanTags || '<span style="color: var(--slate-400); font-style: italic;">Non assigné</span>';
 
+  const favouriteBtn = isAdmin && project.status === 'Terminé' ? `
+    <button class="action-btn favourite ${project.is_favourite ? 'favourite-active' : ''}"
+            onclick="toggleFavourite('${project.id}')"
+            title="${project.is_favourite ? 'Retirer du portfolio' : 'Ajouter au portfolio'}">
+      ${project.is_favourite ? PROJ_ICONS.heartFilled : PROJ_ICONS.heartEmpty}
+    </button>
+  ` : '';
+
   const adminActions = isAdmin ? `
     <div style="display: flex; gap: 8px; margin-left: 8px;" onclick="event.stopPropagation()">
+      ${favouriteBtn}
       <button class="action-btn edit" onclick="openEditProjectModal('${project.id}')" title="Modifier">
         ${PROJ_ICONS.edit}
       </button>
@@ -436,6 +446,60 @@ async function confirmDeleteProject(projectId, projectTitle) {
 }
 
 // ---------------------------------------------------------------
+// FAVOURITE
+// ---------------------------------------------------------------
+
+async function toggleFavourite(projectId) {
+  try {
+    const res = await fetch(`/api/projects/${projectId}/favourite`, { method: 'PATCH' });
+
+    if (!res.ok) {
+      const err = await res.json();
+      alert('Erreur : ' + err.error);
+      return;
+    }
+
+    const updated = await res.json();
+    const idx = allProjects.findIndex(p => p.id === projectId);
+    if (idx !== -1) allProjects[idx] = { ...allProjects[idx], is_favourite: updated.is_favourite };
+    renderProjects();
+  } catch (err) {
+    alert('Erreur réseau.');
+  }
+}
+
+// ---------------------------------------------------------------
+// COVER PHOTO
+// ---------------------------------------------------------------
+
+async function setCoverPhoto(projectId, photoId) {
+  const project = allProjects.find(p => p.id === projectId);
+  const newPhotoId = project && project.cover_photo_id === photoId ? null : photoId;
+
+  try {
+    const res = await fetch(`/api/projects/${projectId}/cover-photo`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ photo_id: newPhotoId }),
+    });
+
+    if (!res.ok) {
+      const err = await res.json();
+      alert('Erreur : ' + err.error);
+      return;
+    }
+
+    const updated = await res.json();
+    const idx = allProjects.findIndex(p => p.id === projectId);
+    if (idx !== -1) allProjects[idx] = { ...allProjects[idx], cover_photo_id: updated.cover_photo_id };
+
+    renderPhotoGrid(projectId, 'after');
+  } catch (err) {
+    alert('Erreur réseau.');
+  }
+}
+
+// ---------------------------------------------------------------
 // PHOTOS
 // ---------------------------------------------------------------
 
@@ -469,14 +533,23 @@ function renderPhotoGrid(projectId, type) {
     return;
   }
 
+  const coverPhotoId = (allProjects.find(p => p.id === projectId) || {}).cover_photo_id || null;
+
   grid.innerHTML = photos.map((photo, i) => {
     const canDelete = canDeletePhoto(photo);
-    const allOfType = (photosCache[projectId] || {})[type] || [];
+    const isCover = photo.id === coverPhotoId;
+    const showCoverBtn = user.role === 'ADMIN' && type === 'after';
     return `
       <div class="photo-thumb" onclick="openLightbox('${projectId}', '${type}', ${i})">
         <img src="${photo.file_url || `/uploads/photos/${photo.file_name}`}" alt="Photo ${type}" loading="lazy">
+        ${showCoverBtn ? `
+          <button class="photo-cover-btn ${isCover ? 'is-cover' : ''}"
+                  title="${isCover ? 'Retirer la couverture' : 'Définir comme couverture'}"
+                  onclick="event.stopPropagation(); setCoverPhoto('${projectId}', '${photo.id}')">
+            ${PROJ_ICONS.star}
+          </button>` : ''}
         ${canDelete ? `
-          <button class="photo-delete-btn" title="Supprimer" 
+          <button class="photo-delete-btn" title="Supprimer"
                   onclick="event.stopPropagation(); deletePhoto('${photo.id}', '${projectId}', '${type}')">
             ${PROJ_ICONS.xCircle}
           </button>` : ''}

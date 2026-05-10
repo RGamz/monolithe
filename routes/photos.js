@@ -97,6 +97,7 @@ router.post('/:projectId', (req, res) => {
 
     try {
       const uploadedAt = new Date().toISOString();
+      const moderationStatus = role === 'ADMIN' ? 'approuvé' : 'en_attente';
       const inserted = [];
 
       for (const file of req.files) {
@@ -104,13 +105,14 @@ router.post('/:projectId', (req, res) => {
         const id = randomUUID();
 
         req.db.run(
-          `INSERT INTO project_photos (id, project_id, uploaded_by, photo_type, file_name, file_url, file_key, uploaded_at)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-          [id, projectId, userId, photoType, file.originalname, url, key, uploadedAt]
+          `INSERT INTO project_photos (id, project_id, uploaded_by, photo_type, file_name, file_url, file_key, uploaded_at, moderation_status)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          [id, projectId, userId, photoType, file.originalname, url, key, uploadedAt, moderationStatus]
         );
 
         inserted.push({ id, project_id: projectId, uploaded_by: userId, photo_type: photoType,
-          file_name: file.originalname, file_url: url, file_key: key, uploaded_at: uploadedAt });
+          file_name: file.originalname, file_url: url, file_key: key, uploaded_at: uploadedAt,
+          moderation_status: moderationStatus });
       }
 
       res.json(inserted);

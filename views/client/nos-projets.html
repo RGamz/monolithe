@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nos Projets — Monolithe, réalisations de rénovation à Toulouse</title>
+    <meta name="description" content="Découvrez les réalisations de Monolithe : avant et après de nos projets de rénovation à Toulouse.">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://monolithe.pro/nos-projets/">
+    <!-- Open Graph -->
+    <meta property="og:title" content="Nos Projets — Monolithe">
+    <meta property="og:description" content="Découvrez les réalisations de Monolithe : avant et après de nos projets de rénovation à Toulouse.">
+    <meta property="og:url" content="https://monolithe.pro/nos-projets/">
+    <meta property="og:type" content="website">
+    <meta property="og:locale" content="fr_FR">
+    <!-- Local SEO -->
+    <meta name="geo.region" content="FR-31">
+    <meta name="geo.placename" content="Toulouse">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/client.css">
+    <link rel="stylesheet" href="/css/nav-shared.css">
+</head>
+<body data-section="client" data-page="/nos-projets/">
+    <div id="site-header"></div>
+
+    <main class="container container-lg section-hero">
+
+        <!-- Hero -->
+        <div class="text-center mb-20">
+            <h1 class="heading-hero mb-6">Nos Projets</h1>
+            <p class="text-large">
+                Découvrez nos réalisations — avant et après chaque chantier de rénovation
+            </p>
+        </div>
+
+        <!-- Projects section -->
+        <section id="projects-section" class="section">
+
+            <!-- Loading state -->
+            <div id="projects-loading" class="text-center">
+                <p class="text-body text-muted">Chargement des projets...</p>
+            </div>
+
+            <!-- Empty state -->
+            <div id="projects-empty" class="text-center hidden">
+                <p class="text-body text-muted">Aucun projet en vedette pour le moment. Revenez bientôt !</p>
+            </div>
+
+            <!-- Carousel container -->
+            <div id="carousel-container" class="hidden">
+                <div class="carousel-wrapper">
+                    <button class="carousel-btn carousel-prev" id="carousel-prev" onclick="carouselPrev()" aria-label="Projet précédent">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+                        </svg>
+                    </button>
+                    <div class="carousel-viewport">
+                        <div class="carousel-track" id="carousel-track"></div>
+                    </div>
+                    <button class="carousel-btn carousel-next" id="carousel-next" onclick="carouselNext()" aria-label="Projet suivant">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                        </svg>
+                    </button>
+                </div>
+
+                <!-- Dot indicators -->
+                <div class="carousel-dots" id="carousel-dots"></div>
+
+                <!-- Expanded project details (below carousel) -->
+                <div class="project-details-panel hidden" id="project-details-panel">
+                    <div class="project-details-inner" id="project-details-inner"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Call to Action -->
+        <section class="text-center" style="margin-top: 2rem;">
+            <div class="card card-padded-lg">
+                <h2 class="heading-section mb-4">Votre projet, notre expertise</h2>
+                <p class="text-body mb-8">
+                    Obtenez votre devis personnalisé en quelques minutes
+                </p>
+                <a href="/#hero" class="btn btn-primary btn-lg">
+                    Commencer
+                    <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/>
+                    </svg>
+                </a>
+            </div>
+        </section>
+    </main>
+
+    <!-- Lightbox -->
+    <div id="pub-lightbox" class="pub-lightbox hidden" onclick="closePubLightbox(event)">
+        <button class="pub-lightbox-close" onclick="closePubLightboxBtn()" aria-label="Fermer">&times;</button>
+        <button class="pub-lightbox-nav pub-lightbox-prev" onclick="pubLightboxNav(-1)" aria-label="Précédent">&#8249;</button>
+        <img id="pub-lightbox-img" class="pub-lightbox-img" src="" alt="">
+        <button class="pub-lightbox-nav pub-lightbox-next" onclick="pubLightboxNav(1)" aria-label="Suivant">&#8250;</button>
+        <span id="pub-lightbox-counter" class="pub-lightbox-counter"></span>
+    </div>
+
+    <div id="site-footer"></div>
+    <script src="/js/shared/nav.js"></script>
+    <script src="/js/client/nos-projets.js"></script>
+</body>
+</html>

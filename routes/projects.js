@@ -138,6 +138,51 @@ router.put('/:id', (req, res) => {
   });
 });
 
+// PATCH /api/projects/:id/favourite  — toggle is_favourite (ADMIN, Terminé only)
+router.patch('/:id/favourite', (req, res) => {
+  if (req.session?.role !== 'ADMIN') {
+    return res.status(403).json({ error: 'Accès réservé aux administrateurs.' });
+  }
+
+  const { id } = req.params;
+  const project = req.db.getOne('SELECT * FROM projects WHERE id = ?', [id]);
+  if (!project) return res.status(404).json({ error: 'Projet introuvable.' });
+
+  if (project.status !== 'Terminé') {
+    return res.status(400).json({ error: "Seuls les projets terminés peuvent être mis en avant." });
+  }
+
+  const newVal = project.is_favourite ? 0 : 1;
+  req.db.run('UPDATE projects SET is_favourite = ? WHERE id = ?', [newVal, id]);
+
+  res.json({ id, is_favourite: newVal });
+});
+
+// PATCH /api/projects/:id/cover-photo  — set cover photo (ADMIN, "après" only)
+router.patch('/:id/cover-photo', (req, res) => {
+  if (req.session?.role !== 'ADMIN') {
+    return res.status(403).json({ error: 'Accès réservé aux administrateurs.' });
+  }
+
+  const { id } = req.params;
+  const { photo_id } = req.body;
+
+  const project = req.db.getOne('SELECT id FROM projects WHERE id = ?', [id]);
+  if (!project) return res.status(404).json({ error: 'Projet introuvable.' });
+
+  if (photo_id) {
+    const photo = req.db.getOne(
+      `SELECT id FROM project_photos WHERE id = ? AND project_id = ? AND photo_type = 'after'`,
+      [photo_id, id]
+    );
+    if (!photo) return res.status(400).json({ error: 'Photo introuvable ou invalide.' });
+  }
+
+  req.db.run('UPDATE projects SET cover_photo_id = ? WHERE id = ?', [photo_id || null, id]);
+
+  res.json({ id, cover_photo_id: photo_id || null });
+});
+
 // DELETE /api/projects/:id
 router.delete('/:id', (req, res) => {
   const { id } = req.params;

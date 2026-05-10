@@ -59,6 +59,9 @@ app.use('/api/auth', require('./routes/auth'));
 // Public form endpoints — no session required (client-facing contact/devis forms)
 app.use('/api/forms', require('./routes/client-forms'));
 
+// Public portfolio projects — no session required (powers the Nos Projets page)
+app.use('/api/public/projects', require('./routes/public-projects'));
+
 // All remaining API routes require a valid session
 app.use('/api', requireAuth);
 
@@ -118,8 +121,8 @@ routeWithSlash('/pro/contact-us', 'pro-landing', 'contact-us.html');
 // ------------------------------------------------------------------
 app.get('/', servePage('client', 'index.html'));
 routeWithSlash('/about-us',         'client', 'about-us.html');
+routeWithSlash('/nos-projets',      'client', 'nos-projets.html');
 routeWithSlash('/contact-us',       'client', 'contact-us.html');
-routeWithSlash('/tips-and-tricks',  'client', 'tips-and-tricks.html');
 routeWithSlash('/mentions-legales', 'client', 'mentions-legales.html');
 
 // ------------------------------------------------------------------

@@ -1942,3 +1942,65 @@ img { max-width: 100%; display: block; }
   color: rgb(220, 38, 38);
   background: rgb(254, 242, 242);
 }
+
+
+/* ==============================================
+   Favourite (heart) button — project accordion
+   ============================================== */
+
+.action-btn.favourite:hover {
+  color: #ef4444;
+  border-color: #fecaca;
+  background: #fff5f5;
+}
+
+.action-btn.favourite-active {
+  color: #ef4444;
+  border-color: #fecaca;
+}
+
+.action-btn.favourite-active:hover {
+  background: #fef2f2;
+  color: #dc2626;
+  border-color: #fca5a5;
+}
+
+/* ==============================================
+   Cover photo star button — après photo thumb
+   ============================================== */
+
+.photo-cover-btn {
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  background: rgba(0, 0, 0, 0.55);
+  border: none;
+  border-radius: 50%;
+  color: rgba(255, 255, 255, 0.65);
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.15s, color 0.15s, background 0.15s;
+  padding: 0;
+  font-size: 13px;
+  line-height: 1;
+}
+
+.photo-thumb:hover .photo-cover-btn {
+  opacity: 1;
+}
+
+.photo-cover-btn.is-cover {
+  opacity: 1;
+  color: #fbbf24;
+  background: rgba(0, 0, 0, 0.65);
+}
+
+.photo-cover-btn:hover {
+  background: rgba(0, 0, 0, 0.78);
+  color: #fbbf24;
+}

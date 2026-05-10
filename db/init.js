@@ -58,6 +58,8 @@ async function initialize() {
       start_date TEXT,
       description TEXT,
       end_of_work_signed INTEGER NOT NULL DEFAULT 0,
+      is_favourite INTEGER NOT NULL DEFAULT 0,
+      cover_photo_id TEXT,
       FOREIGN KEY (client_id) REFERENCES users(id)
     );
 
@@ -144,6 +146,8 @@ async function initialize() {
       created_at TEXT NOT NULL DEFAULT (datetime('now')),
       read_at TEXT
     );
+
+    CREATE TABLE IF NOT EXISTS devis_submissions (
       id TEXT PRIMARY KEY,
       name TEXT NOT NULL,
       email TEXT NOT NULL,

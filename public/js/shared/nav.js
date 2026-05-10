@@ -23,6 +23,7 @@
   // ------------------------------------------------------------------
   const clientLinks = [
     { href: '/', label: 'Accueil' },
+    { href: '/nos-projets/', label: 'Nos Projets' },
     { href: '/about-us/', label: 'À Propos' },
     { href: '/contact-us/', label: 'Contact' },
   ];

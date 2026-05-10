@@ -21,6 +21,11 @@ function initDatabase(filePath) {
   db = new Database(filePath);
   db.pragma('journal_mode = WAL');
   db.pragma('foreign_keys = ON');
+  
+  // Idempotent schema migrations
+  try { db.exec("ALTER TABLE projects ADD COLUMN is_favourite INTEGER NOT NULL DEFAULT 0"); } catch (_) {}
+  try { db.exec("ALTER TABLE projects ADD COLUMN cover_photo_id TEXT"); } catch (_) {}
+
   console.log(`🗄️  Database loaded from: ${filePath}`);
   return Promise.resolve(db);
 }
